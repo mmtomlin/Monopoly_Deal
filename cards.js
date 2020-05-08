@@ -1,5 +1,5 @@
-const CARDS = {
-  PROPERTY: [
+exports.CARDS = {
+  PROP: [
     // Main property cards
     {
       colour: "brown",
@@ -51,6 +51,8 @@ const CARDS = {
       numberof: 3,
       value: 3,
     },
+  ],
+  PROPWC : [
     // Wildcards
     {
       colour: "dblue",
@@ -94,7 +96,8 @@ const CARDS = {
       value: 3,
       reverseColour: "red",
     },
-    // Multi wildcard
+  ],
+  PROPANY: [
     {
       colour: "any",
       numberof: 2,
@@ -155,52 +158,52 @@ const CARDS = {
   ],
   POWER: [
     {
-      power: dealBreaker,
+      power: "dealBreaker",
       value: 5,
       numberof: 2,
     },
     {
-      power: debtCollector,
+      power: "debtCollector",
       value: 3,
       numberof: 3,
     },
     {
-      power: doubleTheRent,
+      power: "doubleTheRent",
       value: 1,
       numberof: 1,
     },
     {
-      power: forcedDeal,
+      power: "forcedDeal",
       value: 3,
       numberof: 3,
     },
     {
-      power: justSayNo,
+      power: "justSayNo",
       value: 4,
       numberof: 3,
     },
     {
-      power: itsMyBirthday,
+      power: "itsMyBirthday",
       value: 2,
       numberof: 3,
     },
     {
-      power: slyDeal,
+      power: "slyDeal",
       value: 3,
       numberof: 3,
     },
     {
-      power: passGo,
+      power: "passGo",
       value: 1,
       numberof: 10,
     },
     {
-      power: hotel,
+      power: "hotel",
       value: 4,
       numberof: 3,
     },
     {
-      power: house,
+      power: "house",
       value: 3,
       numberof: 3,
     },

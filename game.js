@@ -1,4 +1,6 @@
-// Game 'class'
+const cards = require("./cards.js");
+
+// Game prototype
 function Game() {
   this.startGame = function () {
     this.deck = new Deck();
@@ -7,12 +9,32 @@ function Game() {
   };
 }
 
-// Deck 'class'
+// Deck prototype
 function Deck() {
   this.cards = [];
   this.discarded = [];
 
   // Generate property cards:
+  // Common properties
+  const properties = cards.CARDS.PROP;
+  for (let i = 0; i < properties.length; i++) {
+    const propGroup = properties[i];
+    for (let j = 0; j < propGroup.length; j++) {
+      this.cards.push(
+        new Card("prop", propGroup.colour, j + 1, propGroup.value, null, null)
+      );
+    }
+  }
+  // Property wildcards
+  const properties = cards.CARDS.PROPWC;
+  for (let i = 0; i < properties.length; i++) {
+    const propGroup = properties[i];
+    for (let j = 0; j < propGroup.length; j++) {
+      this.cards.push(
+        new Card("propWC", propGroup.colour, j + 1, propGroup.value, null, propGroup.reverse)
+      );
+    }
+  };
 
   this.shuffle = function () {
     shuffle(this.cards);
@@ -44,15 +66,14 @@ function shuffle(a) {
   return a;
 }
 
-// Card 'class'
-function Card(cardType, colour, id, value, power, reverse, image) {
+// Card prototype
+function Card(cardType, colour, id, value, power, reverse) {
   this.cardType = cardType;
   this.colour = colour;
   this.id = id;
   this.value = value;
   this.power = power;
   this.reverse = reverse;
-  this.image = image;
 
   this.flip = function () {
     if (this.reverse !== null) {
