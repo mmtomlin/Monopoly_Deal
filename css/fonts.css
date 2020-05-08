@@ -1,0 +1,20 @@
+@font-face {
+    font-family: ITCKabelStd-Bold;
+    src: url("../fonts/ITCKabelStd-Bold.otf") format("opentype");
+}
+
+@font-face {
+    font-family: ITCKabelStd-Book;
+    src: url("../fonts/ITCKabelStd-Book.otf") format("opentype");
+
+}
+
+@font-face {
+    font-family: ITCKabelStd-Demi;
+    src: url("../fonts/ITCKabelStd-Demi.otf") format("opentype");
+}
+
+@font-face {
+    font-family: ITCKabelStd-Ultra;
+    src: url("../fonts/ITCKabelStd-Ultra.otf") format("opentype");
+}
