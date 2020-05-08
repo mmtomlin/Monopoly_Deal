@@ -5,8 +5,51 @@ function Game() {
   this.startGame = function () {
     this.deck = new Deck();
     this.deck.shuffle();
-    this.players = [];
-  };
+    this.gameStarted = false;
+    this.gameOver = false;
+    
+    const players = ["jeff","steve"];
+    const numberOfStartingCards = 5;
+    const cardsPerTurn = 2;
+
+    // TODO need to pick random start
+    // draw 5 cards each:
+    for (let p = 0; p < players.length; p++) {
+      for (let i = 0; i < numberOfStartingCards; i++) {
+        this.players[p].hand.push(this.Deck.drawCard())        
+      }
+    }
+
+    // main game loop
+    while (!this.gameOver) {
+      doRound();
+    }
+
+    // operations per round
+    doRound = function () {
+      for (let p = 0; p < players.length; p++) {
+        // draw cards:
+        for (let i = 0; i < cardsPerTurn; i++) {
+          this.players[p].hand.push(this.Deck.drawCard()) 
+        }
+        // play cards:
+        this.player[p].rentMultiplier = 1
+        this.players[p].cardsRemaining = cardsPerTurn;
+        while (this.players[p].cardsRemaining > 0) {
+          this.players[p].getmove()
+        }
+      }
+    }
+  }
+};
+
+// Player prototype
+function Player(name, position) {
+  this.name = name
+  this.position = position
+  this.hand = []
+  this.property = []
+  this.money = []
 }
 
 // Deck prototype
@@ -15,34 +58,26 @@ function Deck() {
   this.discarded = [];
 
   // Generate property cards:
-  // Common properties
-  const properties = cards.CARDS.PROP;
-  for (let i = 0; i < properties.length; i++) {
-    const propGroup = properties[i];
-    for (let j = 0; j < propGroup.length; j++) {
-      this.cards.push(
-        new Card("prop", propGroup.colour, j + 1, propGroup.value, null, null)
-      );
+  cardTypes = ["prop", "propWC", "propAny", "cash", "rent", "power"];
+  for (let t = 0; t < cardTypes.length; t++) {
+    const cardType = cardTypes[t];
+    const cardGroup = cards.CARDS[cardType];
+    console.log(cardGroup)
+    for (let i = 0; i < cardGroup.length; i++) {
+      const cardEntry = cardGroup[i];
+      for (let j = 0; j < cardEntry.numberof; j++) {
+        this.cards.push(new Card(cardType, cardEntry, j));
+      }
     }
   }
-  // Property wildcards
-  const properties = cards.CARDS.PROPWC;
-  for (let i = 0; i < properties.length; i++) {
-    const propGroup = properties[i];
-    for (let j = 0; j < propGroup.length; j++) {
-      this.cards.push(
-        new Card("propWC", propGroup.colour, j + 1, propGroup.value, null, propGroup.reverse)
-      );
-    }
-  };
 
   this.shuffle = function () {
     shuffle(this.cards);
   };
 
   this.drawCard = function () {
-    return this.cards.pop();
-  };
+    return this.deck.cards.pop()
+  }
 
   this.flipPile = function () {
     this.cards = this.discarded.reverse();
@@ -67,14 +102,12 @@ function shuffle(a) {
 }
 
 // Card prototype
-function Card(cardType, colour, id, value, power, reverse) {
-  this.cardType = cardType;
-  this.colour = colour;
-  this.id = id;
-  this.value = value;
-  this.power = power;
-  this.reverse = reverse;
+function Card(type, creatorObject, id) {
+  this.card = creatorObject;
+  this.card.id = id;
+  this.card.type = type;
 
+  // function to change colour or wildcards
   this.flip = function () {
     if (this.reverse !== null) {
       var l = this.reverse;
@@ -89,6 +122,14 @@ function Card(cardType, colour, id, value, power, reverse) {
       this.cardType === "PropWC" ||
       this.cardType === "PropAny"
     ) {
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  this.isrent = function () {
+    if (this.cardType === "rent") {
       return true;
     } else {
       return false;
@@ -113,3 +154,5 @@ const RENTS = {
 // Init game:
 var game = new Game();
 game.startGame();
+
+}

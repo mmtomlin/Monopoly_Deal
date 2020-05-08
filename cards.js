@@ -1,5 +1,5 @@
 exports.CARDS = {
-  PROP: [
+  prop: [
     // Main property cards
     {
       colour: "brown",
@@ -52,7 +52,7 @@ exports.CARDS = {
       value: 3,
     },
   ],
-  PROPWC : [
+  propWC : [
     // Wildcards
     {
       colour: "dblue",
@@ -74,7 +74,7 @@ exports.CARDS = {
     },
     {
       colour: "green",
-      numerof: 1,
+      numberof: 1,
       value: 4,
       reverseColour: "rail",
     },
@@ -97,14 +97,14 @@ exports.CARDS = {
       reverseColour: "red",
     },
   ],
-  PROPANY: [
+  propAny: [
     {
       colour: "any",
       numberof: 2,
       value: 0,
     },
   ],
-  CASH: [
+  cash: [
     {
       value: 10,
       numberof: 1,
@@ -130,33 +130,33 @@ exports.CARDS = {
       numberof: 6,
     },
   ],
-  RENT: [
+  rent: [
     {
-      colours: "any",
+      RentColours: "any",
       numberof: 3,
     },
     {
-      colours: ["dblue", "green"],
+      rentColours : ["dblue", "green"],
       numberof: 2,
     },
     {
-      colours: ["brown", "lblue"],
+      rentColours: ["brown", "lblue"],
       numberof: 2,
     },
     {
-      colours: ["purple", "orange"],
+      rentColours: ["purple", "orange"],
       numberof: 2,
     },
     {
-      colours: ["rail", "utility"],
+      rentColours: ["rail", "utility"],
       numberof: 2,
     },
     {
-      colours: ["red", "yellow"],
+      rentColours: ["red", "yellow"],
       numberof: 2,
     },
   ],
-  POWER: [
+  power: [
     {
       power: "dealBreaker",
       value: 5,
