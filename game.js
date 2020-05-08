@@ -11,19 +11,19 @@ function Deck() {
   this.discarded = [];
 
   k = 0;
-  for (let i = 0; i < colours.length; i++) {
+  for (let i = 0; i < PROPCARDS.length; i++) {
     let rev = null;
-    for (let j = 0; j < colours[i].numberof; j++) {
-      if (typeof colours[i].reverseColour === "string") {
-        rev = colours[i].reverseColour;
+    for (let j = 0; j < PROPCARDS[i].numberof; j++) {
+      if (typeof PROPCARDS[i].reverseColour === "string") {
+        rev = PROPCARDS[i].reverseColour;
       } else {
         rev = null;
       }
 
       this.cards[k] = new PropCard(
-        colours[i].colour,
+        PROPCARDS[i].colour,
         j,
-        colours[i].value,
+        PROPCARDS[i].value,
         true,
         rev
       );
@@ -80,7 +80,7 @@ function PropCard(colour, id, value, isprop, reverse, power = null) {
   };
 }
 
-const colours = [
+const PROPCARDS = [
   // Main property cards
   {
     colour: "brown",
@@ -180,11 +180,117 @@ const colours = [
     colour: "any",
     numberof: 2,
     value: 0,
-    
   }
 ];
 
-const rent = {
+const CASHCARDS = [
+  {
+    value: 10,
+    numberof: 1
+  },
+  {
+    value: 5,
+    numerof: 2
+  },
+  {
+    value: 4,
+    numberof: 3
+  },
+  {
+    value: 3,
+    numberof: 3
+  },
+  {
+    value: 2,
+    numberof: 5
+  },
+  {
+    value: 1,
+    numberof: 6
+  }
+]
+
+const RENTCARDS = [
+  {
+    colours = "any",
+    numberof = 3
+  },
+  {
+    colours = ["dblue", "green"],
+    numberof = 2
+  },
+  {
+    colours = ["brown","lblue"],
+    numberof = 2
+  },
+  {
+    colours = ["purple", "orange"],
+    numberof = 2
+  },
+  {
+    colours = ["rail", "utility"],
+    numberof = 2
+  },
+  {
+    colours = ["red", "yellow"],
+    numberof = 2
+  }
+]
+
+const POWERCARDS = [
+  {
+    power: dealBreaker,
+    value: 5,
+    numberof: 2
+  },
+  {
+    power: debtCollector,
+    value: 3,
+    numberof: 3
+  },
+  {
+    power: doubleTheRent,
+    value: 1,
+    numberof: 1
+  },
+  {
+    power: forcedDeal,
+    value: 3,
+    numberof: 3
+  },
+  {
+    power: justSayNo,
+    value: 4, 
+    numberof: 3
+  },
+  {
+    power: itsMyBirthday,
+    value: 2,
+    numberof: 3
+  },
+  {
+    power: slyDeal,
+    value: 3,
+    numberof: 3
+  },
+  {
+    power: passGo,
+    value: 1,
+    numberof: 10
+  },
+  {
+    power: hotel,
+    value: 4,
+    numberof: 3
+  },
+  {
+    power: house,
+    value: 3,
+    numberof: 3
+  }
+]
+
+const RENTS = {
   brown: [1, 2],
   dblue: [3, 8],
   green: [2, 4, 7],
