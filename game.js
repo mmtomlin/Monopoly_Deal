@@ -1,55 +1,85 @@
+const express = require("express");
+const socketio = require("socketio");
+
 const cards = require("./cards.js");
 
+//
+// GAME LOGIC
+//
+
 // Game prototype
-function Game() {
+module.exports = function (Game) {
   this.startGame = function () {
     this.deck = new Deck();
     this.deck.shuffle();
     this.gameStarted = false;
     this.gameOver = false;
-    
-    const players = ["jeff","steve"];
+
+    const players = ["jeff", "steve"];
     const numberOfStartingCards = 5;
     const cardsPerTurn = 2;
+
+    // Init players
+    this.players = [];
+    for (let p = 0; p < players.length; p++) {
+      this.players.push(new Player(players[p]));
+    }
 
     // TODO need to pick random start
     // draw 5 cards each:
     for (let p = 0; p < players.length; p++) {
       for (let i = 0; i < numberOfStartingCards; i++) {
-        this.players[p].hand.push(this.Deck.drawCard())        
+        this.players[p].hand.push(this.deck.drawCard());
       }
-    }
-
-    // main game loop
-    while (!this.gameOver) {
-      doRound();
     }
 
     // operations per round
-    doRound = function () {
+    this.doRound = function () {
+      // Iterate over players
       for (let p = 0; p < players.length; p++) {
         // draw cards:
         for (let i = 0; i < cardsPerTurn; i++) {
-          this.players[p].hand.push(this.Deck.drawCard()) 
+          this.players[p].hand.push(this.deck.drawCard());
         }
         // play cards:
-        this.player[p].rentMultiplier = 1
-        this.players[p].cardsRemaining = cardsPerTurn;
-        while (this.players[p].cardsRemaining > 0) {
-          this.players[p].getmove()
+        this.players[p].rentMultiplier = 1;
+        var cardsRemaining = cardsPerTurn;
+        while (cardsRemaining > 0) {
+          move = this.players[p].getMove();
+          if (typeof move.play === "number") {
+            this.players[s].hand[move.play].play(this.players[p]);
+          }
         }
       }
+    };
+
+    // main game loop
+    while (!this.gameOver) {
+      this.doRound();
     }
-  }
+  };
 };
 
 // Player prototype
 function Player(name, position) {
-  this.name = name
-  this.position = position
-  this.hand = []
-  this.property = []
-  this.money = []
+  this.name = name;
+  this.position = position;
+  this.hand = [];
+  this.property = [];
+  this.money = [];
+
+  this.getMoves = function () {
+    //
+    movelist = [];
+    for (let i = 0; i < this.hand.length; i++) {
+      const card = this.hand[i];
+      if (card.ispower) {
+        movelist.push({ card: card, move: "power" });
+      }
+      movelist.push({ card: card, move: "place" });
+    }
+    return movelist;
+  };
 }
 
 // Deck prototype
@@ -62,7 +92,6 @@ function Deck() {
   for (let t = 0; t < cardTypes.length; t++) {
     const cardType = cardTypes[t];
     const cardGroup = cards.CARDS[cardType];
-    console.log(cardGroup)
     for (let i = 0; i < cardGroup.length; i++) {
       const cardEntry = cardGroup[i];
       for (let j = 0; j < cardEntry.numberof; j++) {
@@ -76,8 +105,8 @@ function Deck() {
   };
 
   this.drawCard = function () {
-    return this.deck.cards.pop()
-  }
+    return this.cards.pop();
+  };
 
   this.flipPile = function () {
     this.cards = this.discarded.reverse();
@@ -88,6 +117,9 @@ function Deck() {
     this.discarded.push(card);
   };
 }
+
+// Dealbreaker power:
+function place(card, player) {}
 
 // Fisher-Yates Shuffle agorithm
 function shuffle(a) {
@@ -135,6 +167,8 @@ function Card(type, creatorObject, id) {
       return false;
     }
   };
+
+  this.play = function (player) {};
 }
 
 // Rent amounts:
@@ -151,8 +185,18 @@ const RENTS = {
   yellow: [2, 4, 6],
 };
 
-// Init game:
-var game = new Game();
-game.startGame();
+//
+// SERVER SETUP
+//
 
-}
+// App setup
+var app = express();
+app.use(express.static("public"));
+var server = app.listen(4000, function () {
+  console.log("listening to requests on port 4000");
+});
+
+// Serve main page
+app.get("/", function (req, res) {
+  res.sendFile(__dirname + "/index.html");
+});
