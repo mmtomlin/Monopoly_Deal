@@ -1,0 +1,23 @@
+{
+  "name": "monopoly_deal",
+  "version": "1.0.0",
+  "description": "monopoly deal with node, express",
+  "main": "game.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mmtomlin/Monopoly_Deal.git"
+  },
+  "author": "Matt Tomlin",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mmtomlin/Monopoly_Deal/issues"
+  },
+  "homepage": "https://github.com/mmtomlin/Monopoly_Deal#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "socketio": "^1.0.0"
+  }
+}
