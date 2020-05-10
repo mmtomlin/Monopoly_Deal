@@ -52,7 +52,7 @@ exports.CARDS = {
       value: 3,
     },
   ],
-  propWC : [
+  propWC: [
     // Wildcards
     {
       colour: "dblue",
@@ -136,7 +136,7 @@ exports.CARDS = {
       numberof: 3,
     },
     {
-      rentColours : ["dblue", "green"],
+      rentColours: ["dblue", "green"],
       numberof: 2,
     },
     {
@@ -158,54 +158,72 @@ exports.CARDS = {
   ],
   power: [
     {
-      power: "dealBreaker",
+      power: dealBreaker,
       value: 5,
       numberof: 2,
     },
     {
-      power: "debtCollector",
+      power: debtCollector,
       value: 3,
       numberof: 3,
     },
     {
-      power: "doubleTheRent",
+      power: doubleTheRent,
       value: 1,
       numberof: 1,
     },
     {
-      power: "forcedDeal",
+      power: forcedDeal,
       value: 3,
       numberof: 3,
     },
     {
-      power: "justSayNo",
-      value: 4,
-      numberof: 3,
-    },
-    {
-      power: "itsMyBirthday",
+      power: itsMyBirthday,
       value: 2,
       numberof: 3,
     },
     {
-      power: "slyDeal",
+      power: slyDeal,
       value: 3,
       numberof: 3,
     },
     {
-      power: "passGo",
+      power: passGo,
       value: 1,
       numberof: 10,
     },
     {
-      power: "hotel",
+      power: hotel,
       value: 4,
       numberof: 3,
     },
     {
-      power: "house",
+      power: house,
       value: 3,
       numberof: 3,
     },
   ],
+};
+
+//card powers
+dealBreaker = function (game, player) {
+  console.log("deal breaker played");
+};
+debtCollector = function (game, player) {
+  console.log("debt collector played");
+};
+doubleTheRent = function (game, player) {
+  console.log("double the rent played");
+};
+forcedDeal = function (geme, player) {
+  console.log("forced deal played");
+};
+itsMyBirthday = function (game, player) {
+  console.log("it's my birthday played");
+};
+slyDeal = function (game, player) {
+  console.log("sly deal played");
+};
+passGo = function (game, player) {
+  console.log("pass go played");
 };

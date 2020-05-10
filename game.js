@@ -14,16 +14,11 @@ module.exports = function (Game) {
     this.deck.shuffle();
     this.gameStarted = false;
     this.gameOver = false;
+    this.players = [];
+    this.playersNotReady = 0;
 
-    const players = ["jeff", "steve"];
     const numberOfStartingCards = 5;
     const cardsPerTurn = 2;
-
-    // Init players
-    this.players = [];
-    for (let p = 0; p < players.length; p++) {
-      this.players.push(new Player(players[p]));
-    }
 
     // TODO need to pick random start
     // draw 5 cards each:
@@ -53,6 +48,10 @@ module.exports = function (Game) {
       }
     };
 
+    this.addPlayer = function (id, name) {
+      this.players.push(new Player(id, name));
+    };
+
     // main game loop
     while (!this.gameOver) {
       this.doRound();
@@ -61,12 +60,13 @@ module.exports = function (Game) {
 };
 
 // Player prototype
-function Player(name, position) {
+function Player(id, name) {
   this.name = name;
-  this.position = position;
+  this.socketID = id;
   this.hand = [];
   this.property = [];
   this.money = [];
+  this.hasJustSayNo = false;
 
   this.getMoves = function () {
     //
@@ -79,6 +79,38 @@ function Player(name, position) {
       movelist.push({ card: card, move: "place" });
     }
     return movelist;
+  };
+}
+
+// Street prototype
+function Street(card) {
+  this.cards = [card];
+  this.colour = card.card.colour;
+
+  // Rent amounts:
+  const RENTS = {
+    brown: [1, 2],
+    dblue: [3, 8],
+    green: [2, 4, 7],
+    lblue: [1, 2, 3],
+    orange: [1, 3, 5],
+    purple: [1, 2, 4],
+    rail: [1, 2, 3, 4],
+    red: [2, 3, 6],
+    utility: [1, 2],
+    yellow: [2, 4, 6],
+  };
+
+  this.addCard = function (addedCard) {
+    this.cards.push(addedCard);
+  };
+
+  this.isComplete = function () {
+    // TODO
+  };
+
+  this.getRent() = function () {
+    // TODO
   };
 }
 
@@ -117,9 +149,6 @@ function Deck() {
     this.discarded.push(card);
   };
 }
-
-// Dealbreaker power:
-function place(card, player) {}
 
 // Fisher-Yates Shuffle agorithm
 function shuffle(a) {
@@ -171,19 +200,8 @@ function Card(type, creatorObject, id) {
   this.play = function (player) {};
 }
 
-// Rent amounts:
-const RENTS = {
-  brown: [1, 2],
-  dblue: [3, 8],
-  green: [2, 4, 7],
-  lblue: [1, 2, 3],
-  orange: [1, 3, 5],
-  purple: [1, 2, 4],
-  rail: [1, 2, 3, 4],
-  red: [2, 3, 6],
-  utility: [1, 2],
-  yellow: [2, 4, 6],
-};
+// Game start
+game = Game();
 
 //
 // SERVER SETUP
@@ -199,4 +217,23 @@ var server = app.listen(4000, function () {
 // Serve main page
 app.get("/", function (req, res) {
   res.sendFile(__dirname + "/index.html");
+});
+
+// Socket setup
+var io = socket(server);
+io.on("connection", function (socket) {
+  console.log("made socket connection", socket.id);
+
+  // Initialise player, send waiting status
+  socket.on("name", function (data) {
+    game.addPlayer(socket.id, data);
+    console.log("Added player: " + data);
+    socket.emit({ gameStatus: waiting });
+    game.playersNotReady++ ;
+  });
+
+  // Check if players are ready
+  socket.on("ready", function () { 
+    //check if all players are ready
+  });
 });
