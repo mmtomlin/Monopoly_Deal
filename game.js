@@ -6,56 +6,53 @@ const cards = require("./cards.js");
 //
 // GAME LOGIC
 //
-
 // Game prototype
-module.exports = function (Game) {
+Game = function () {
+  this.players = [];
+  this.playersNotReady = 0;
+  this.winner = null;
+  this.gameStarted = false;
+  this.gameOver = false;
+
   this.startGame = function () {
+    this.gameStarted = true;
+    shuffle(this.players);
     this.deck = new Deck();
-    this.deck.shuffle();
-    this.gameStarted = false;
-    this.gameOver = false;
-    this.players = [];
-    this.playersNotReady = 0;
+    shuffle(this.deck);
 
     const numberOfStartingCards = 5;
     const cardsPerTurn = 2;
 
-    // TODO need to pick random start
-    // draw 5 cards each:
     for (let p = 0; p < players.length; p++) {
+      // lets each player know position
+      this.players[p].position = p;
+      // Draws 5 (numberOfStartingCards) cards:
       for (let i = 0; i < numberOfStartingCards; i++) {
-        this.players[p].hand.push(this.deck.drawCard());
+        this.players[p].giveHandCard(this.deck.drawCard())
       }
     }
 
-    // operations per round
-    this.doRound = function () {
-      // Iterate over players
-      for (let p = 0; p < players.length; p++) {
-        // draw cards:
-        for (let i = 0; i < cardsPerTurn; i++) {
-          this.players[p].hand.push(this.deck.drawCard());
-        }
-        // play cards:
-        this.players[p].rentMultiplier = 1;
-        var cardsRemaining = cardsPerTurn;
-        while (cardsRemaining > 0) {
-          move = this.players[p].getMove();
-          if (typeof move.play === "number") {
-            this.players[s].hand[move.play].play(this.players[p]);
-          }
-        }
-      }
-    };
-
-    this.addPlayer = function (id, name) {
-      this.players.push(new Player(id, name));
-    };
-
-    // main game loop
+    // main game-loop
     while (!this.gameOver) {
       this.doRound();
     }
+
+    console.log(winner + " wins!");
+  };
+
+  // per game round
+  this.doRound = function () {
+    // Iterate over players
+    for (let p = 0; p < players.length; p++) {
+        players[p].takeTurn()
+      }
+  };
+
+  // adding a player:
+  this.addPlayer = function (id, name) {
+    if (!this.gameStarted) {
+      this.players.push(new Player(id, name));
+    } 
   };
 };
 
@@ -68,8 +65,9 @@ function Player(id, name) {
   this.money = [];
   this.hasJustSayNo = false;
 
+  // gets list of possible moves during turn:
+  // DEPRECATED??????
   this.getMoves = function () {
-    //
     movelist = [];
     for (let i = 0; i < this.hand.length; i++) {
       const card = this.hand[i];
@@ -79,6 +77,65 @@ function Player(id, name) {
       movelist.push({ card: card, move: "place" });
     }
     return movelist;
+  };
+
+  // take turn:
+  this.takeTurn = function () {
+    var cardsLeft = 3; //
+    while (cardsLeft > 0) {
+      this.getMove(cardsLeft)
+    }
+  }
+
+  // get private data for this player
+  this.getPrivateData = function () {
+    return {
+      name: this.name,
+      property: this.property,
+      money: this.money, 
+      hand: this.hand,
+    }
+  }
+
+  // get public data for this player
+  this.getPublicData = function () {
+    return {
+      name: this.name,
+      property: this.property,
+      moneyTopCard: this.money[0], 
+      moneyCardCount: this.money.length, 
+      handCardCount: this.hand.length,
+    }
+  }
+
+  // send all game data to client
+  this.sendGameData = function(game) { 
+
+    // Creates array of positions relative to this player
+    const pRange = [...Array(game.players.length).keys()]
+    const relPos = pRange.slice(player.position).concat(pRange.slice(0,player.position))
+    var playerData = [];
+
+    for (let i = 0; i < game.players.length - 1; i++) {
+      p = relPos[i];
+      playerData.push(game.players[p].getPublicData());
+    }
+    
+    gameData = {  }
+
+    io.to(this.socketID).emit({ gameData : gameData })
+
+  }
+
+  // requests move from client
+  this.getMove = function (cardsLeft) {
+    io.to(this.socketID).emit({ move: [true, cards]})
+  }
+
+  // passes cards into players hand
+  this.giveHandCard = function (card) {
+    this.hand.push(card);
+    io.to(this.socketID).emit({ pushHand: card });
   };
 }
 
@@ -131,10 +188,6 @@ function Deck() {
       }
     }
   }
-
-  this.shuffle = function () {
-    shuffle(this.cards);
-  };
 
   this.drawCard = function () {
     return this.cards.pop();
@@ -229,11 +282,14 @@ io.on("connection", function (socket) {
     game.addPlayer(socket.id, data);
     console.log("Added player: " + data);
     socket.emit({ gameStatus: waiting });
-    game.playersNotReady++ ;
+    game.playersNotReady++;
   });
 
   // Check if players are ready
-  socket.on("ready", function () { 
-    //check if all players are ready
+  socket.on("ready", function () {
+    game.playersNotReady--;
+    if (game.players.length > 1 && game.playersNotReady === 0) {
+      game.startGame();
+    }
   });
 });
