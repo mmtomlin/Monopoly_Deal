@@ -8,25 +8,37 @@
       href="https://fonts.googleapis.com/css2?family=Cabin&family=Raleway&family=Source+Sans+Pro&display=swap"
       rel="stylesheet"
     />
+    <link rel="stylesheet" href="css/fonts.css">
+    <link rel="stylesheet" href="css/cards.css">
     <link rel="stylesheet" href="css/styles.css" />
   </head>
   
   <body>
 
     <!-- div structure -->
-    <div class="game_container">
+    <div class="game-container" hidden>
       <div class="board">
-        <div class="player_area user">
-          <div class="property_container user">
+        <div class="player-area user">
+          <div class="property-container user">
           </div>
-          <div class="money_container user">
+          <div class="money-container user">
           </div>
         </div>
       </div>
-      <div class="col player_hand_container"></div>
+      <div class="player_hand_container"></div>
     </div>
 
+    <div class="login-overlay">
+      <h4>enter name!</h4>
+      <input type="text" name="name" id="name">
+      <button id="login-button">start</button>
+    </div>
+
+    <div class="lobby-overlay"></div>
+
+    <div class="options-overlay" hidden></div>
+
     <script src="https://cdn.jsdelivr.net/npm/socket.io-client@2/dist/socket.io.js"></script>
-    <script src="index.js"></script>
+    <script src="scripts/client.js"></script>
   </body>
 </html>

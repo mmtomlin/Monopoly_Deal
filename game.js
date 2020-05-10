@@ -3,9 +3,6 @@ const socketio = require("socketio");
 
 const cards = require("./cards.js");
 
-
-
-
 // GAME HEIRARCHY = GAME > ROUND > TURN > MOVE
 
 //
@@ -24,7 +21,7 @@ Game = function () {
     this.gameStarted = true;
     shuffle(this.players);
     this.deck = new Deck();
-    shuffle(this.deck);
+    shuffle(this.deck.cards);
 
     const numberOfStartingCards = 5;
     const cardsPerTurn = 2;
@@ -37,7 +34,7 @@ Game = function () {
       for (let i = 0; i < numberOfStartingCards; i++) {
         this.players[p].drawCard(this.deck);
       }
-      this.players[p].sendAllGameData()
+      this.players[p].sendAllGameData();
     }
 
     // main game-loop
@@ -69,7 +66,53 @@ Game = function () {
       lastDiscardedCard: this.deck.discarded[this.deck.discarded.length - 1],
     };
   };
+
+  // deals all cards out and places them in property piles
+  // 
+  this.testFrontEnd = function () {
+    this.deck = new Deck();
+    shuffle(this.deck);
+    players = ["bob","steve","derek","paul"];
+    for (let p = 0; p < players.length; p++) {
+      this.addPlayer(null, players[p]) 
+    }
+    for (let i = 0; i < this.deck.cards.length; i++) {
+      var card = this.deck.cards.pop()
+      if (card.isprop()) {
+        this.players[Math.floor(Math.random * 5)]
+      }     
+    }
+    this.players[0].sendAllGameData();
+  }
 };
+
+// Deck prototype
+function Deck() {
+  this.cards = [];
+  this.discarded = [];
+
+  // Generate property cards:
+  cardTypes = ["prop", "propWC", "propAny", "cash", "rent", "power"];
+  for (let t = 0; t < cardTypes.length; t++) {
+    const cardType = cardTypes[t];
+    const cardGroup = cards.CARDS[cardType];
+    for (let i = 0; i < cardGroup.length; i++) {
+      const cardEntry = cardGroup[i];
+      for (let j = 0; j < cardEntry.numberof; j++) {
+        this.cards.push(new Card(cardType, cardEntry, j));
+      }
+    }
+  }
+
+  this.flipPile = function () {
+    this.cards = this.discarded.reverse();
+    this.discarded = [];
+  };
+
+  this.discard = function (card) {
+    this.discarded.push(card);
+  };
+}
 
 // Player prototype
 function Player(id, name) {
@@ -86,10 +129,10 @@ function Player(id, name) {
     this.getMove(this.movesRemaining);
     while (true) {
       if (this.movesRemaining === 0) {
-        break
+        break;
       }
     }
-    this.checkHandTooBig()
+    this.checkHandTooBig();
   };
 
   // get private data for this player
@@ -144,7 +187,7 @@ function Player(id, name) {
 
   // draws a card from deck into players hand
   this.giveHandCard = function (deck) {
-    card = deck.cards.pop()
+    card = deck.cards.pop();
     this.hand.push(card);
     io.to(this.socketID).emit({ pushHand: card });
   };
@@ -153,9 +196,9 @@ function Player(id, name) {
   this.checkHandTooBig = function (game) {
     const excessCards = this.hand.cards.length - game.maxHandCards;
     if (excessCards > 0) {
-      io.to(this.socketID).emit({ forceDiscard: excessCards })
+      io.to(this.socketID).emit({ forceDiscard: excessCards });
     }
-  }
+  };
 }
 
 // Street prototype
@@ -177,46 +220,19 @@ function Street(card) {
     yellow: [2, 4, 6],
   };
 
-  this.addCard = function (addedCard) {
-    this.cards.push(addedCard);
-  };
-
   this.isComplete = function () {
-    // TODO
+    if (this.cards.length >= RENTS[this.colour].length) { return true } else { return false }
   };
 
   this.getRent() = function () {
-    // TODO
+    if (RENTS[this.colour].length < this.cards.length) {
+      return RENTS[this.colour][this.cards.length];
+    } else {
+      return RENTS[this.colour][this.colour.length -1]
+    };
   };
 }
 
-// Deck prototype
-function Deck() {
-  this.cards = [];
-  this.discarded = [];
-
-  // Generate property cards:
-  cardTypes = ["prop", "propWC", "propAny", "cash", "rent", "power"];
-  for (let t = 0; t < cardTypes.length; t++) {
-    const cardType = cardTypes[t];
-    const cardGroup = cards.CARDS[cardType];
-    for (let i = 0; i < cardGroup.length; i++) {
-      const cardEntry = cardGroup[i];
-      for (let j = 0; j < cardEntry.numberof; j++) {
-        this.cards.push(new Card(cardType, cardEntry, j));
-      }
-    }
-  }
-
-  this.flipPile = function () {
-    this.cards = this.discarded.reverse();
-    this.discarded = [];
-  };
-
-  this.discard = function (card) {
-    this.discarded.push(card);
-  };
-}
 
 // Fisher-Yates Shuffle agorithm
 function shuffle(a) {
