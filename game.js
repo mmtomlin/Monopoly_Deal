@@ -3,9 +3,15 @@ const socketio = require("socketio");
 
 const cards = require("./cards.js");
 
+
+
+
+// GAME HEIRARCHY = GAME > ROUND > TURN > MOVE
+
 //
 // GAME LOGIC
 //
+
 // Game prototype
 Game = function () {
   this.players = [];
@@ -22,14 +28,16 @@ Game = function () {
 
     const numberOfStartingCards = 5;
     const cardsPerTurn = 2;
+    this.maxHandCards = 7;
 
     for (let p = 0; p < players.length; p++) {
       // lets each player know position
       this.players[p].position = p;
       // Draws 5 (numberOfStartingCards) cards:
       for (let i = 0; i < numberOfStartingCards; i++) {
-        this.players[p].giveHandCard(this.deck.drawCard())
+        this.players[p].drawCard(this.deck);
       }
+      this.players[p].sendAllGameData()
     }
 
     // main game-loop
@@ -44,15 +52,22 @@ Game = function () {
   this.doRound = function () {
     // Iterate over players
     for (let p = 0; p < players.length; p++) {
-        players[p].takeTurn()
-      }
+      players[p].takeTurn();
+    }
   };
 
   // adding a player:
   this.addPlayer = function (id, name) {
     if (!this.gameStarted) {
       this.players.push(new Player(id, name));
-    } 
+    }
+  };
+
+  this.getTableData = function () {
+    tableData = {
+      deckCardCount: this.deck.cards.length(),
+      lastDiscardedCard: this.deck.discarded[this.deck.discarded.length - 1],
+    };
   };
 };
 
@@ -65,78 +80,82 @@ function Player(id, name) {
   this.money = [];
   this.hasJustSayNo = false;
 
-  // gets list of possible moves during turn:
-  // DEPRECATED??????
-  this.getMoves = function () {
-    movelist = [];
-    for (let i = 0; i < this.hand.length; i++) {
-      const card = this.hand[i];
-      if (card.ispower) {
-        movelist.push({ card: card, move: "power" });
-      }
-      movelist.push({ card: card, move: "place" });
-    }
-    return movelist;
-  };
-
-  // take turn:
+  // player turn:
   this.takeTurn = function () {
-    var cardsLeft = 3; //
-    while (cardsLeft > 0) {
-      this.getMove(cardsLeft)
+    this.movesRemaining = 3; //
+    this.getMove(this.movesRemaining);
+    while (true) {
+      if (this.movesRemaining === 0) {
+        break
+      }
     }
-  }
+    this.checkHandTooBig()
+  };
 
   // get private data for this player
   this.getPrivateData = function () {
     return {
       name: this.name,
       property: this.property,
-      money: this.money, 
+      money: this.money,
       hand: this.hand,
-    }
-  }
+    };
+  };
 
-  // get public data for this player
+  // get public data for all other players
   this.getPublicData = function () {
     return {
       name: this.name,
       property: this.property,
-      moneyTopCard: this.money[0], 
-      moneyCardCount: this.money.length, 
+      moneyTopCard: this.money[0],
+      moneyCardCount: this.money.length,
       handCardCount: this.hand.length,
-    }
-  }
+    };
+  };
 
   // send all game data to client
-  this.sendGameData = function(game) { 
-
+  this.sendAllGameData = function (game) {
     // Creates array of positions relative to this player
-    const pRange = [...Array(game.players.length).keys()]
-    const relPos = pRange.slice(player.position).concat(pRange.slice(0,player.position))
+    const pRange = [...Array(game.players.length).keys()];
+    const relPos = pRange
+      .slice(player.position)
+      .concat(pRange.slice(0, player.position));
     var playerData = [];
 
+    // gets data from other players relative to this player position
     for (let i = 0; i < game.players.length - 1; i++) {
       p = relPos[i];
       playerData.push(game.players[p].getPublicData());
     }
-    
-    gameData = {  }
 
-    io.to(this.socketID).emit({ gameData : gameData })
-
-  }
+    // Collates and sends game data
+    gameData = {
+      privateData: this.getPrivateData(),
+      publicData: this.getPublicData(),
+      tableData: game.getTableData(),
+    };
+    io.to(this.socketID).emit({ gameData: gameData });
+  };
 
   // requests move from client
-  this.getMove = function (cardsLeft) {
-    io.to(this.socketID).emit({ move: [true, cards]})
-  }
+  this.getMove = function (movesRemaining) {
+    io.to(this.socketID).emit({ move: movesRemaining });
+  };
 
-  // passes cards into players hand
-  this.giveHandCard = function (card) {
+  // draws a card from deck into players hand
+  this.giveHandCard = function (deck) {
+    card = deck.cards.pop()
     this.hand.push(card);
     io.to(this.socketID).emit({ pushHand: card });
   };
+
+  // checks if hand has more cards than allowed
+  this.checkHandTooBig = function (game) {
+    const excessCards = this.hand.cards.length - game.maxHandCards;
+    if (excessCards > 0) {
+      io.to(this.socketID).emit({ forceDiscard: excessCards })
+    }
+  }
 }
 
 // Street prototype
@@ -188,10 +207,6 @@ function Deck() {
       }
     }
   }
-
-  this.drawCard = function () {
-    return this.cards.pop();
-  };
 
   this.flipPile = function () {
     this.cards = this.discarded.reverse();
