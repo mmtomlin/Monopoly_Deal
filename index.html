@@ -8,36 +8,74 @@
       href="https://fonts.googleapis.com/css2?family=Cabin&family=Raleway&family=Source+Sans+Pro&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="css/fonts.css">
-    <link rel="stylesheet" href="css/cards.css">
-    <link rel="stylesheet" href="css/styles.css" />
+    <link type="text/css" rel="stylesheet" href="css/fonts.css" />
+    <link type="text/css" rel="stylesheet" href="css/cards.css" />
+    <link type="text/css" rel="stylesheet" href="css/styles.css" />
   </head>
-  
+
   <body>
-
-    <!-- div structure -->
-    <div class="game-container" hidden>
-      <div class="board">
-        <div class="player-area user">
-          <div class="property-container user">
-          </div>
-          <div class="money-container user">
-          </div>
-        </div>
+    <!-- login bit -->
+    <div class="outer-container">
+      <div id="login-overlay" class="container">
+        <h1>Monopoly Deal</h1>
+        <img
+          class="jailman"
+          src="images/jail-clipart-monopoly-jail-12.png"
+          alt="Main in jail"
+        />
+        <h2>Lockdown edition</h2>
+        <h4>enter name:</h4>
+        <input type="text" name="name" id="name" />
+        <button id="login-button">start</button>
       </div>
-      <div class="player_hand_container"></div>
     </div>
 
-    <div class="login-overlay">
-      <h4>enter name!</h4>
-      <input type="text" name="name" id="name">
-      <button id="login-button">start</button>
+    <!-- lobby -->
+    <div class="outer-container">
+      <div id="lobby-overlay" class="container"></div>
     </div>
 
-    <div class="lobby-overlay"></div>
+    <!-- main game -->
+    <div class="outer-container">
+      <div id="game-container" class="container">
+        <div class="player-area user">
+          <div class="property-container user"></div>
+          <div class="money-container user"></div>
+        </div>
+        <div class="player-area player1">
+          1
+          <div class="property-container player1"></div>
+          <div class="money-container player1"></div>
+        </div>
+        <div class="player-area player2">
+          2
+          <div class="property-container player2"></div>
+          <div class="money-container player2"></div>
+        </div>
+        <div class="player-area player3">
+          3
+          <div class="property-container player3"></div>
+          <div class="money-container player3"></div>
+        </div>
+        <div class="player-area player4">
+          4
+          <div class="property-container player4"></div>
+          <div class="money-container player4"></div>
+        </div>
+        <div id="deck">
+          <div id="card-pile"></div>
+          <div id="discard-pile"></div>
+        </div>
+        <div id="player_hand_container"></div>
+      </div>
+    </div>
 
-    <div class="options-overlay" hidden></div>
+    <!-- options pop-up -->
+    <div class="outer-container" id="options-popup">
+      <div id="options-container" class="container"></div>
+    </div>
 
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/socket.io-client@2/dist/socket.io.js"></script>
     <script src="scripts/client.js"></script>
   </body>

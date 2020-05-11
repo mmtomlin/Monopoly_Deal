@@ -1,12 +1,11 @@
 const express = require("express");
 const socketio = require("socket.io");
+const fs = require("fs");
 
 const cards = require("./cards.js");
 
 /*
-
 GAME HEIRARCHY = GAME > ROUND > TURN > MOVE
-
 */
 
 //
@@ -136,7 +135,7 @@ function Player(id, name, position) {
   this.property = [];
   this.money = [];
   this.hasJustSayNo = false;
-  this.position = position
+  this.position = position;
 
   // player turn:
   this.takeTurn = function () {
@@ -189,7 +188,13 @@ function Player(id, name, position) {
       tableData: game.getDeckPublicData(),
     };
     io.to(this.socketID).emit("gameData", gameData);
-    console.log(gameData);
+    fs.writeFile(
+      "test_game_data.json",
+      JSON.stringify(gameData, null, 2),
+      function () {
+        console.log("JSON game data file written");
+      }
+    );
   };
 
   // requests move from client
@@ -329,8 +334,30 @@ function shuffle(a) {
   return a;
 }
 
+// card image getter
+function nameImage(card, cardNum) {
+  var cardType = card.cardType;
+  var colour = card.colour;
+
+  if (cardType === "cash") {
+    return "money-" + cardNum + ".png"
+  } else if (cardType === "prop") {
+    return "prop-" + colour + "-" + cardNum + ".png"
+  } else if (cardType === "propWC") {
+    var revColour = card.revColour;
+    return "prop-wildcard-" + colour + "-" + revColour + ".png"
+  } else if (cardType === "propAny") {
+    return "prop-any.png"
+  } else if (cardType === "rent") {
+    // get colours????
+    return "rent-" + colour1 + "-" + colour2 + ".png"
+  } else if (cardType === "power") {
+
+  } else { console.log(" BIG ERROR ") }
+}
+
 // Game start
-game = new Game();
+// game = new Game(); - starting game inside socket for testing
 
 //
 // SERVER SETUP
@@ -338,7 +365,7 @@ game = new Game();
 
 // App setup
 var app = express();
-app.use(express.static("public"));
+app.use(express.static(__dirname + "/public/"));
 var server = app.listen(4000, function () {
   console.log("listening to requests on port 4000");
 });
@@ -355,6 +382,7 @@ io.on("connection", function (socket) {
 
   // Initialise player, send waiting status
   socket.on("name", function (data) {
+    game = new Game();
     game.addPlayer(socket.id, data.name);
     console.log("Added player: " + data.name);
     game.testFrontEnd();
