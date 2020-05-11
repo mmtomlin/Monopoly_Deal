@@ -1,9 +1,13 @@
 const express = require("express");
-const socketio = require("socketio");
+const socketio = require("socket.io");
 
 const cards = require("./cards.js");
 
-// GAME HEIRARCHY = GAME > ROUND > TURN > MOVE
+/*
+
+GAME HEIRARCHY = GAME > ROUND > TURN > MOVE
+
+*/
 
 //
 // GAME LOGIC
@@ -34,7 +38,7 @@ Game = function () {
       for (let i = 0; i < numberOfStartingCards; i++) {
         this.players[p].drawCard(this.deck);
       }
-      this.players[p].sendAllGameData();
+      this.players[p].sendAllGameData(this);
     }
 
     // main game-loop
@@ -55,35 +59,44 @@ Game = function () {
 
   // adding a player:
   this.addPlayer = function (id, name) {
-    if (!this.gameStarted) {
-      this.players.push(new Player(id, name));
+    const position = this.players.length;
+    if (!this.gameStarted && position < 6) {
+      this.players.push(new Player(id, name, position));
     }
   };
 
-  this.getTableData = function () {
+  // gets deck public data
+  this.getDeckPublicData = function () {
     tableData = {
-      deckCardCount: this.deck.cards.length(),
+      deckCardCount: this.deck.cards.length,
       lastDiscardedCard: this.deck.discarded[this.deck.discarded.length - 1],
     };
+    return tableData;
   };
 
   // deals all cards out and places them in property piles
-  // 
+  // user player should already be added
   this.testFrontEnd = function () {
+    console.log("starting front end test");
     this.deck = new Deck();
     shuffle(this.deck);
-    players = ["bob","steve","derek","paul"];
-    for (let p = 0; p < players.length; p++) {
-      this.addPlayer(null, players[p]) 
+    dummyPlayers = ["bob", "steve", "derek", "paul"];
+    // add dummy players:
+    for (let p = 0; p < dummyPlayers.length; p++) {
+      this.addPlayer(null, dummyPlayers[p]);
     }
-    for (let i = 0; i < this.deck.cards.length; i++) {
-      var card = this.deck.cards.pop()
+    // loop over deck
+    for (let i = this.deck.cards.length; i > 0; i--) {
+      var card = this.deck.cards.pop();
       if (card.isprop()) {
-        this.players[Math.floor(Math.random * 5)]
-      }     
+        this.players[Math.floor(Math.random() * 5)].addCardToProp(card);
+      } else if (card.hasValue()) {
+        this.players[Math.floor(Math.random() * 5)].money.push(card);
+      }
     }
-    this.players[0].sendAllGameData();
-  }
+    console.log("sending game data to client");
+    this.players[0].sendAllGameData(this);
+  };
 };
 
 // Deck prototype
@@ -91,7 +104,7 @@ function Deck() {
   this.cards = [];
   this.discarded = [];
 
-  // Generate property cards:
+  // Generate cards:
   cardTypes = ["prop", "propWC", "propAny", "cash", "rent", "power"];
   for (let t = 0; t < cardTypes.length; t++) {
     const cardType = cardTypes[t];
@@ -99,7 +112,8 @@ function Deck() {
     for (let i = 0; i < cardGroup.length; i++) {
       const cardEntry = cardGroup[i];
       for (let j = 0; j < cardEntry.numberof; j++) {
-        this.cards.push(new Card(cardType, cardEntry, j));
+        var newCard = new Card(cardType, cardEntry, j);
+        this.cards.push(newCard);
       }
     }
   }
@@ -115,13 +129,14 @@ function Deck() {
 }
 
 // Player prototype
-function Player(id, name) {
+function Player(id, name, position) {
   this.name = name;
   this.socketID = id;
   this.hand = [];
   this.property = [];
   this.money = [];
   this.hasJustSayNo = false;
+  this.position = position
 
   // player turn:
   this.takeTurn = function () {
@@ -145,7 +160,7 @@ function Player(id, name) {
     };
   };
 
-  // get public data for all other players
+  // get public data for this player
   this.getPublicData = function () {
     return {
       name: this.name,
@@ -158,45 +173,57 @@ function Player(id, name) {
 
   // send all game data to client
   this.sendAllGameData = function (game) {
-    // Creates array of positions relative to this player
-    const pRange = [...Array(game.players.length).keys()];
-    const relPos = pRange
-      .slice(player.position)
-      .concat(pRange.slice(0, player.position));
-    var playerData = [];
-
     // gets data from other players relative to this player position
-    for (let i = 0; i < game.players.length - 1; i++) {
+    var OtherPlayerData = [];
+    var relPos = positionRelative(game.players.length, this.position);
+    for (let i = 1; i < relPos.length; i++) {
+      // i=1 to not include player position
       p = relPos[i];
-      playerData.push(game.players[p].getPublicData());
+      OtherPlayerData.push(game.players[p].getPublicData());
     }
 
     // Collates and sends game data
     gameData = {
       privateData: this.getPrivateData(),
-      publicData: this.getPublicData(),
-      tableData: game.getTableData(),
+      publicData: OtherPlayerData,
+      tableData: game.getDeckPublicData(),
     };
-    io.to(this.socketID).emit({ gameData: gameData });
+    io.to(this.socketID).emit("gameData", gameData);
+    console.log(gameData);
   };
 
   // requests move from client
   this.getMove = function (movesRemaining) {
-    io.to(this.socketID).emit({ move: movesRemaining });
+    io.to(this.socketID).emit("move", movesRemaining);
   };
 
   // draws a card from deck into players hand
   this.giveHandCard = function (deck) {
     card = deck.cards.pop();
     this.hand.push(card);
-    io.to(this.socketID).emit({ pushHand: card });
+    io.to(this.socketID).emit("pushHand", card);
   };
 
   // checks if hand has more cards than allowed
   this.checkHandTooBig = function (game) {
     const excessCards = this.hand.cards.length - game.maxHandCards;
     if (excessCards > 0) {
-      io.to(this.socketID).emit({ forceDiscard: excessCards });
+      io.to(this.socketID).emit("forceDiscard", excessCards);
+    }
+  };
+
+  this.addCardToProp = function (card) {
+    colour = card.card.colour;
+    var colourPresent = false;
+    for (let i = 0; i < this.property.length; i++) {
+      if (colour === this.property[i].colour) {
+        colourPresent = true;
+        this.property[i].cards.push(card);
+        break;
+      }
+    }
+    if (!colourPresent) {
+      this.property.push(new Street(card));
     }
   };
 }
@@ -221,36 +248,27 @@ function Street(card) {
   };
 
   this.isComplete = function () {
-    if (this.cards.length >= RENTS[this.colour].length) { return true } else { return false }
+    if (this.cards.length >= RENTS[this.colour].length) {
+      return true;
+    } else {
+      return false;
+    }
   };
 
-  this.getRent() = function () {
+  this.getRent = function () {
     if (RENTS[this.colour].length < this.cards.length) {
       return RENTS[this.colour][this.cards.length];
     } else {
-      return RENTS[this.colour][this.colour.length -1]
-    };
+      return RENTS[this.colour][this.colour.length - 1];
+    }
   };
 }
 
-
-// Fisher-Yates Shuffle agorithm
-function shuffle(a) {
-  var j, x, i;
-  for (i = a.length - 1; i > 0; i--) {
-    j = Math.floor(Math.random() * (i + 1));
-    x = a[i];
-    a[i] = a[j];
-    a[j] = x;
-  }
-  return a;
-}
-
 // Card prototype
-function Card(type, creatorObject, id) {
+function Card(cardType, creatorObject, id) {
   this.card = creatorObject;
   this.card.id = id;
-  this.card.type = type;
+  this.cardType = cardType;
 
   // function to change colour or wildcards
   this.flip = function () {
@@ -263,9 +281,9 @@ function Card(type, creatorObject, id) {
 
   this.isprop = function () {
     if (
-      this.cardType === "Prop" ||
-      this.cardType === "PropWC" ||
-      this.cardType === "PropAny"
+      this.cardType === "prop" ||
+      this.cardType === "propWC" ||
+      this.cardType === "propAny"
     ) {
       return true;
     } else {
@@ -281,11 +299,38 @@ function Card(type, creatorObject, id) {
     }
   };
 
+  this.hasValue = function () {
+    if (typeof this.card.value === "number") {
+      return true;
+    } else {
+      return false;
+    }
+  };
+
   this.play = function (player) {};
 }
 
+// Gives repositioned/rotated array indexes, relative to given starting index
+function positionRelative(arraylength, index) {
+  const pRange = [...Array(arraylength).keys()];
+  const relPos = pRange.slice(index).concat(pRange.slice(0, index));
+  return relPos;
+}
+
+// Fisher-Yates Shuffle agorithm
+function shuffle(a) {
+  var j, x, i;
+  for (i = a.length - 1; i > 0; i--) {
+    j = Math.floor(Math.random() * (i + 1));
+    x = a[i];
+    a[i] = a[j];
+    a[j] = x;
+  }
+  return a;
+}
+
 // Game start
-game = Game();
+game = new Game();
 
 //
 // SERVER SETUP
@@ -304,16 +349,20 @@ app.get("/", function (req, res) {
 });
 
 // Socket setup
-var io = socket(server);
+var io = socketio(server);
 io.on("connection", function (socket) {
   console.log("made socket connection", socket.id);
 
   // Initialise player, send waiting status
   socket.on("name", function (data) {
-    game.addPlayer(socket.id, data);
-    console.log("Added player: " + data);
-    socket.emit({ gameStatus: waiting });
+    game.addPlayer(socket.id, data.name);
+    console.log("Added player: " + data.name);
+    game.testFrontEnd();
+    /*
+    UNCOMMENT THIS:
+    socket.emit("gameStatus", waiting );
     game.playersNotReady++;
+    */
   });
 
   // Check if players are ready

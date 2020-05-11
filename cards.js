@@ -1,3 +1,28 @@
+//card powers
+dealBreaker = function (game, player) {
+  console.log("deal breaker played");
+};
+debtCollector = function (game, player) {
+  console.log("debt collector played");
+};
+doubleTheRent = function (game, player) {
+  console.log("double the rent played");
+};
+forcedDeal = function (geme, player) {
+  console.log("forced deal played");
+};
+itsMyBirthday = function (game, player) {
+  console.log("it's my birthday played");
+};
+slyDeal = function (game, player) {
+  console.log("sly deal played");
+};
+passGo = function (game, player) {
+  console.log("pass go played");
+};
+hotel = function (game, player) {}
+house = function (game, player) {}
+
 exports.CARDS = {
   prop: [
     // Main property cards
@@ -132,26 +157,32 @@ exports.CARDS = {
   ],
   rent: [
     {
+      value: 3,
       RentColours: "any",
       numberof: 3,
     },
     {
+      value: 1,
       rentColours: ["dblue", "green"],
       numberof: 2,
     },
     {
+      value: 1,
       rentColours: ["brown", "lblue"],
       numberof: 2,
     },
     {
+      value: 1,
       rentColours: ["purple", "orange"],
       numberof: 2,
     },
     {
+      value: 1,
       rentColours: ["rail", "utility"],
       numberof: 2,
     },
     {
+      value: 1,
       rentColours: ["red", "yellow"],
       numberof: 2,
     },
@@ -203,27 +234,4 @@ exports.CARDS = {
       numberof: 3,
     },
   ],
-};
-
-//card powers
-dealBreaker = function (game, player) {
-  console.log("deal breaker played");
-};
-debtCollector = function (game, player) {
-  console.log("debt collector played");
-};
-doubleTheRent = function (game, player) {
-  console.log("double the rent played");
-};
-forcedDeal = function (geme, player) {
-  console.log("forced deal played");
-};
-itsMyBirthday = function (game, player) {
-  console.log("it's my birthday played");
-};
-slyDeal = function (game, player) {
-  console.log("sly deal played");
-};
-passGo = function (game, player) {
-  console.log("pass go played");
 };
