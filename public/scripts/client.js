@@ -11,11 +11,13 @@ function updateProperty(user, data) {
       "<div class='street " + colour + "'></div>"
     );
     // loops over properties in street:
-    for (let c = 0; c < userProperty[s].cards.length; c++) {
-      const card = userProperty[s].cards[c];
+    for (let c = 0; c < street.cards.length; c++) {
+      const card = street.cards[c];
       $(".street." + colour).append(
-        "<div class='card-parent'><div class= 'mcard " +
-          card.cardImgString +
+        "<div id='" +
+          card.id +
+          "' class='card-parent'><div class= 'mcard " +
+          card.name +
           "'></div></div>"
       );
     }
@@ -29,26 +31,30 @@ function updateMoney(user, data) {
   // empty money container
   $(".money-container.player" + user).empty();
   // TODO : PLAYER HAND CONTAINER
-  if ((user = 0)) {
+  console.log(user);
+  if (user === 0) {
     // for user
     for (let c = 0; c < data.length; c++) {
       const card = data[c];
-      $("money-container.player" + user).append(
-        "<div class=money-parent><div class='mcard " +
-          card.cardImgString +
+      console.log("appending user money");
+      $(".money-container.player" + user).append(
+        "<div class=money-parent><div id='" +
+          card.id +
+          "' class='mcard " +
+          card.name +
           "'></div></div>"
       );
     }
   } else {
     // for other players
     for (let c = 0; c < data.moneyCardCount; c++) {
-      $("money-container.player" + user).append(
+      $(".money-container.player" + user).append(
         "<div class=money-parent><div class='mcard'></div></div>"
       );
     }
-    $("money-container.player" + user).append(
+    $(".money-container.player" + user).append(
       "<div class=money-parent><div class='mcard " +
-        data.moneyTopCard.cardImgString +
+        data.moneyTopCard.name +
         "'></div></div>"
     );
     // TODO - UPDATE PLAYER HANDS
@@ -60,38 +66,52 @@ function updateMoney(user, data) {
 function updateDeck(data) {
   $("#card-pile").empty();
   $("#discard-pile").empty();
-  for (let c = 0; c < data.deckCardCount; c++) {
-    $("#card-pile").append(
-      "<div class=money-parent><div class='mcard'></div></div>"
+  if (data.deckCardCount !== 0) {
+    for (let c = 0; c < data.deckCardCount; c++) {
+      $("#card-pile").append(
+        "<div class=money-parent><div class='mcard'></div></div>"
+      );
+    }
+  }
+  if (data.discardedCount !== 0) {
+    for (let c = 0; c < data.discardedCount; c++) {
+      $("#discard-pile").append(
+        "<div class=money-parent><div class='mcard'></div></div>"
+      );
+    }
+    $("#discard-pile").append(
+      "<div class=money-parent><div class='mcard " +
+        data.discardedTopCard.name +
+        "'></div>"
     );
   }
-  for (let c = 0; c < data.discardedCount; c++) {
-    $("#card-pile").append(
-      "<div class=money-parent><div class='mcard'></div></div>"
-    );
-  }
-  $("#card-pile").append(
-    "<div class=money-parent><div class='mcard " +
-      data.discardedTopCard.cardImgString +
-      "'></div>"
-  );
 }
 
 // updates player hand
 // data is list of cards
 function updateHand(data) {
-  $("player-hand-container").empty();
+  $("#player-hand-container").empty();
   for (let c = 0; c < data.length; c++) {
     const card = data[c];
-    $("player-hand-container").append(
-      "<div class='mcard " + card.cardImgString + "'></div>"
+    $("#player-hand-container").append(
+      "<div id='" + card.id + "' class='mcard " + card.name + "'></div>"
     );
   }
 }
 
-
-
-
+// updates lobby
+// data.players[p].(name/ready)
+function updateLobby(data) {
+  $("#lobby-list").empty();
+  for (let i = 0; i < data.length; i++) {
+    const player = data.players[i];
+    var ready = "waiting";
+    if ((player.ready = true)) {
+      ready = "ready";
+    }
+    $("#lobby-list").append("<li> " + player.name + " : " + ready + " </li>");
+  }
+}
 
 // connect to socket
 var socket = io.connect("http://localhost:4000");
@@ -105,6 +125,13 @@ var loginNameInput = $("#name");
 var loginBtn = $("#login-button");
 loginBtn.on("click", function () {
   socket.emit("name", { name: loginNameInput.value });
+  $(".outer-container.login").css("display", "none");
+  $(".outer-container.lobby").css("display", "inline-block");
+});
+
+var readyButton = $("#ready-button");
+readyButton.on("click", function () {
+  socket.emit("ready", { ready: true });
 });
 
 /*
@@ -118,59 +145,40 @@ socket.on("connection", function () {
 // game started message from server
 socket.on("gameStatus", function (data) {
   console.log("received game status");
+  if (data.gameStarted === true) {
+    $(".outer-container.lobby").css("display", "none");
+    $(".outer-container.game").css("display", "inline-block");
+  } else {
+    updateLobby(data.players);
+  }
 });
 
 // game data message
-socket.on("gameData", function (data) {
-  /*
-  console.log("received game data");
-  // console.log(JSON.stringify(data, null, 2));
-  const userProperty = data.privateData.property;
-  for (let s = 0; s < userProperty.length; s++) {
-    // populate user property
-    const colour = userProperty[s].colour;
-    $(".property-container.user").append(
-      '<div class="street ' + colour + '"></div>'
-    );
-    for (let c = 0; c < userProperty[s].cards.length; c++) {
-      const card = userProperty[s].cards[c];
-      $(".street." + colour).append(
-        '<div class="card-parent"><div class="mcard ' +
-          card.cardImgString +
-          '"></div></div>'
-      );
-    }
-    // populate user money
-    const userMoney = data.privateData.money;
-    for (let i = 0; i < userMoney.length; i++) {
-      const card = userMoney[i];
-      $(".money-container.user").append(
-        '<div class="money-parent"><div class="mcard ' +
-          card.cardImgString +
-          '"></div></div>'
-      );
-    }
-    //populate user hand
-    const userHand = data.privateData.hand;
-    for (let i = 0; i < userHand.length; i++) {
-      const card = userHand[i];
-      $("#player-hand-container").append(
-        '<div class="mcard ' + card.cardImgString + '">'
-      );
-    }
+socket.on("gameData", function (gameData) {
+  const playerData = gameData.playerData;
+  const tableData = gameData.tableData;
+  const playerCount = playerData.length;
+  for (let p = 0; p < playerCount; p++) {
+    updateProperty(p, playerData[p].property);
+    updateMoney(p, playerData[p].money);
   }
-  */
+  updateHand(playerData[0].hand);
+  updateDeck(gameData.tableData);
 });
 
 // move request
 socket.on("move", function (data) {
   console.log("move : " + data);
+  alert("Please select a card you have " + data.movesRemaining + " moves left");
+  var handCards = $("#player-hand-container>.mcard");
+  for (let i = 0; i < handCards.length; i++) {
+    const card = handCards[i];
+    card.on("click", function () {
+      socket.emit("choice", { card: card.attr("id") });
+    });
+  }
 });
 
-// drawn card data
-socket.on("pushHand", function (data) {
-  console.log("pushHand : " + data);
-});
 
 // request to discard cards if too many in hand
 socket.on("forceDiscard", function (data) {

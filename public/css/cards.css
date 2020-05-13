@@ -30,8 +30,8 @@
             background-image: url(../cards/prop-purple-3.png)
         }
         
-.prop-wildcard-any {
-            background-image: url(../cards/prop-wildcard-any.png)
+.prop-any {
+            background-image: url(../cards/prop-any.png)
         }
         
 .prop-yellow-3 {
@@ -50,8 +50,8 @@
             background-image: url(../cards/prop-rail-1.png)
         }
         
-.prop-wildcard-brown-lblue {
-            background-image: url(../cards/prop-wildcard-brown-lblue.png)
+.prop-wc-lblue-brown {
+            background-image: url(../cards/prop-wc-lblue-brown.png)
         }
         
 .rent-any {
@@ -70,8 +70,8 @@
             background-image: url(../cards/prop-rail-2.png)
         }
         
-.prop-wildcard-green-dblue {
-            background-image: url(../cards/prop-wildcard-green-dblue.png)
+.prop-wc-dblue-green {
+            background-image: url(../cards/prop-wc-dblue-green.png)
         }
         
 .rent-brown-lblue {
@@ -90,8 +90,8 @@
             background-image: url(../cards/prop-rail-3.png)
         }
         
-.prop-wildcard-green-rail {
-            background-image: url(../cards/prop-wildcard-green-rail.png)
+.prop-wc-green-rail {
+            background-image: url(../cards/prop-wc-green-rail.png)
         }
         
 .rent-green-dblue {
@@ -110,8 +110,8 @@
             background-image: url(../cards/prop-rail-4.png)
         }
         
-.prop-wildcard-lblue-rail {
-            background-image: url(../cards/prop-wildcard-lblue-rail.png)
+.prop-wc-lblue-rail {
+            background-image: url(../cards/prop-wc-lblue-rail.png)
         }
         
 .rent-purple-orange {
@@ -130,8 +130,8 @@
             background-image: url(../cards/prop-red-1.png)
         }
         
-.prop-wildcard-orange-purple {
-            background-image: url(../cards/prop-wildcard-orange-purple.png)
+.prop-wc-orange-purple {
+            background-image: url(../cards/prop-wc-orange-purple.png)
         }
         
 .rent-rail-utility {
@@ -150,8 +150,8 @@
             background-image: url(../cards/prop-red-2.png)
         }
         
-.prop-wildcard-red-yellow {
-            background-image: url(../cards/prop-wildcard-red-yellow.png)
+.prop-wc-yellow-red {
+            background-image: url(../cards/prop-wc-yellow-red.png)
         }
         
 .rent-red-yellow {
@@ -170,8 +170,8 @@
             background-image: url(../cards/prop-red-3.png)
         }
         
-.prop-wildcard-utility-rail {
-            background-image: url(../cards/prop-wildcard-utility-rail.png)
+.prop-wc-utility-rail {
+            background-image: url(../cards/prop-wc-utility-rail.png)
         }
         
 .prop-dblue-2 {
@@ -188,5 +188,45 @@
         
 .prop-yellow-1 {
             background-image: url(../cards/prop-yellow-1.png)
+        }
+        
+.pass-go {
+            background-image: url(../cards/pass-go.png)
+        }
+        
+.sly-deal {
+            background-image: url(../cards/sly-deal.png)
+        }
+
+.forced-deal {
+            background-image: url(../cards/forced-deal.png)
+        }
+        
+.double-the-rent {
+            background-image: url(../cards/double-the-rent.png)
+        }
+
+.hotel {
+            background-image: url(../cards/hotel.png)
+        }
+
+.house {
+            background-image: url(../cards/house.png)
+        }
+
+.deal-breaker {
+            background-image: url(../cards/deal-breaker.png)
+        }
+
+.debt-collector {
+            background-image: url(../cards/debt-collector.png)
+        }
+
+.just-say-no {
+            background-image: url(../cards/just-say-no.png)
+        }
+
+.its-my-birthday {
+            background-image: url(../cards/its-my-birthday.png)
         }
         

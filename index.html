@@ -15,7 +15,7 @@
 
   <body>
     <!-- login bit -->
-    <div class="outer-container">
+    <div class="outer-container login">
       <div id="login-overlay" class="container">
         <h1>Monopoly Deal</h1>
         <img
@@ -31,40 +31,38 @@
     </div>
 
     <!-- lobby -->
-    <div class="outer-container">
-      <div id="lobby-overlay" class="container"></div>
+    <div class="outer-container lobby">
+      <div id="lobby-overlay" class="container">
+        <button id="ready-button">READY</button>
+      </div>
     </div>
 
     <!-- main game -->
-    <div class="outer-container">
+    <div class="outer-container game">
       <div id="game-container" class="container">
-        <div class="player-area user">
-          <div class="property-container user"></div>
-          <div class="money-container user"></div>
+        <div id="deck">
+          <div id="card-pile"></div>
+          <div id="discard-pile"></div>
+        </div>
+        <div class="player-area player0">
+          <div class="property-container player0"></div>
+          <div class="money-container player0"></div>
         </div>
         <div class="player-area player1">
-          1
           <div class="property-container player1"></div>
           <div class="money-container player1"></div>
         </div>
         <div class="player-area player2">
-          2
           <div class="property-container player2"></div>
           <div class="money-container player2"></div>
         </div>
         <div class="player-area player3">
-          3
           <div class="property-container player3"></div>
           <div class="money-container player3"></div>
         </div>
         <div class="player-area player4">
-          4
           <div class="property-container player4"></div>
           <div class="money-container player4"></div>
-        </div>
-        <div id="deck">
-          <div id="card-pile"></div>
-          <div id="discard-pile"></div>
         </div>
       </div>
     </div>

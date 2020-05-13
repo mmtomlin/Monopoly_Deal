@@ -20,8 +20,9 @@ slyDeal = function (game, player) {
 passGo = function (game, player) {
   console.log("pass go played");
 };
-hotel = function (game, player) {}
-house = function (game, player) {}
+justSayNo = function (game, player) {
+  console.log("jut say no played");
+};
 
 exports.CARDS = {
   prop: [
@@ -30,51 +31,61 @@ exports.CARDS = {
       colour: "brown",
       numberof: 2,
       value: 1,
+      name: "prop-brown-",
     },
     {
       colour: "dblue",
       numberof: 2,
       value: 4,
+      name: "prop-dblue-"
     },
     {
       colour: "green",
       numberof: 3,
       value: 4,
+      name: "prop-green-"
     },
     {
       colour: "lblue",
       numberof: 3,
       value: 1,
+      name: "prop-lblue-"
     },
     {
       colour: "orange",
       numberof: 3,
       value: 2,
+      name: "prop-orange-"
     },
     {
       colour: "purple",
       numberof: 3,
       value: 2,
+      name: "prop-purple-"
     },
     {
       colour: "rail",
       numberof: 4,
       value: 2,
+      name: "prop-rail-"
     },
     {
       colour: "red",
       numberof: 3,
       value: 3,
+      name: "prop-red-"
     },
     {
       colour: "utility",
       numberof: 2,
       value: 2,
+      name: "prop-utility-"
     },
     {
       colour: "yellow",
       numberof: 3,
       value: 3,
+      name: "prop-yellow-"
     }
   ],
   propWC: [
@@ -84,150 +95,169 @@ exports.CARDS = {
       numberof: 1,
       value: 4,
       reverseColour: "green",
+      name: "prop-wc-dblue-green"
     },
     {
       colour: "lblue",
       numberof: 1,
       value: 1,
       reverseColour: "brown",
+      name: "prop-wc-lblue-brown"
     },
     {
       colour: "orange",
       numberof: 1,
       value: 2,
       reverseColour: "purple",
+      name: "prop-wc-orange-purple"
     },
     {
       colour: "green",
       numberof: 1,
       value: 4,
       reverseColour: "rail",
+      name: "prop-wc-green-rail"
     },
     {
       colour: "lblue",
       numberof: 1,
       value: 4,
       reverseColour: "rail",
+      name: "prop-wc-lblue-rail"
     },
     {
       colour: "utility",
       numberof: 1,
       value: 4,
       reverseColour: "rail",
+      name: "prop-wc-utility-rail"
     },
     {
       colour: "yellow",
       numberof: 1,
       value: 3,
       reverseColour: "red",
+      name: "prop-wc-yellow-red"
     }
   ],
   propAny: [
     {
-      colour: "any",
       numberof: 2,
       value: 0,
+      name: "prop-any"
     }
   ],
   cash: [
     {
       value: 10,
       numberof: 1,
+      name: "money-10"
     },
     {
       value: 5,
       numerof: 2,
+      name: "money-5"
     },
     {
       value: 4,
       numberof: 3,
+      name: "money-4"
     },
     {
       value: 3,
       numberof: 3,
+      name: "money-3"
     },
     {
       value: 2,
       numberof: 5,
+      name: "money-2"
     },
     {
       value: 1,
       numberof: 6,
+      name: "money-1"
     }
   ],
   rentAny: [
     {
       value: 3,
-      RentColours: "any",
       numberof: 3,
+      name: "rent-any"
     }
   ],
   rent: [
     {
-      value: 1,
       rentColours: ["dblue", "green"],
       numberof: 2,
+      name: "rent-dblue-green"
     },
     {
-      value: 1,
       rentColours: ["brown", "lblue"],
       numberof: 2,
+      rent: "rent-brown-lblue"
     },
     {
-      value: 1,
       rentColours: ["purple", "orange"],
       numberof: 2,
+      name: "rent-purple-orange"
     },
     {
-      value: 1,
       rentColours: ["rail", "utility"],
       numberof: 2,
+      name: "rent-rail-utility"
     },
     {
-      value: 1,
       rentColours: ["red", "yellow"],
       numberof: 2,
+      name: "rent-red-yellow"
     }
   ],
   power: [
     {
-      powerStr: "dealBreaker",
+      name: "just-say-no",
+      power: justSayNo,
+      value: 4,
+      numberof: 3
+    },
+    {
+      name: "deal-breaker",
       power: dealBreaker,
       value: 5,
       numberof: 2,
     },
     {
-      powerStr: "debtCollector",
+      name: "debt-collector",
       power: debtCollector,
       value: 3,
       numberof: 3,
     },
     {
-      powerStr: "doubleTheRent",
+      name: "double-the-rent",
       power: doubleTheRent,
       value: 1,
       numberof: 1,
     },
     {
-      powerStr: "forcedDeal",
+      name: "forced-deal",
       power: forcedDeal,
       value: 3,
       numberof: 3,
     },
     {
-      powerStr: "itsMyBirthday",
+      name: "its-my-birthday",
       power: itsMyBirthday,
       value: 2,
       numberof: 3,
     },
     {
-      powerStr: "slyDeal",
+      name: "sly-deal",
       power: slyDeal,
       value: 3,
       numberof: 3,
     },
     {
-      powerStr: "passGo",
+      name: "pass-go",
       power: passGo,
       value: 1,
       numberof: 10,
@@ -235,12 +265,12 @@ exports.CARDS = {
   ],
   building: [
     {
-      building: "house",
+      name: "house",
       value: 4,
       numberof: 3,
     },
     {
-      building: "hotel",
+      name: "hotel",
       value: 3,
       numberof: 3,
     }

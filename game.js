@@ -15,14 +15,10 @@ GAME HEIRARCHY = GAME > ROUND > TURN > MOVE
 // Game prototype
 Game = function () {
   this.players = [];
-  this.playersNotReady = 0;
-  this.winner = null;
   this.gameStarted = false;
-  this.gameOver = false;
 
   this.startGame = function () {
-    this.gameStarted = true;
-    //this.players = shuffle(this.players);
+    this.players = shuffle(this.players);
     this.deck = new Deck();
     this.deck.cards = shuffle(this.deck.cards);
 
@@ -48,7 +44,7 @@ Game = function () {
     console.log(winner + " wins!");
   };
 
-  // per game round
+  // looping over players (per round operations)
   this.doRound = function () {
     // Iterate over players
     for (let p = 0; p < players.length; p++) {
@@ -64,14 +60,48 @@ Game = function () {
     }
   };
 
+  //checks if all players are ready to start
+  this.allPlayersReady = function () {
+    for (let p = 0; p < this.players.length; p++) {
+      if (this.players[p].isReady === false) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  // returns player object from socket id
+  this.getPlayerByID = function (id) {
+    for (let p = 0; p < this.players.length; p++) {
+      if (this.players[p].socketID === id) {
+        return this.players[p];
+      }
+    }
+  };
+
   // gets deck public data
   this.getDeckPublicData = function () {
+    var discardedCount = this.deck.discarded.length;
+    var discardedTopCard = this.deck.discarded[this.deck.discarded.length - 1];
+    if (this.deck.discarded === []) {
+      discardedCount = 0;
+    }
     tableData = {
       deckCardCount: this.deck.cards.length,
-      discardedCount: this.deck.discarded.length,
-      discardedTopCard: this.deck.discarded[this.deck.discarded.length - 1],
+      discardedCount: discardedCount,
+      discardedTopCard: discardedTopCard,
     };
     return tableData;
+  };
+
+  //returns player list and if they're ready
+  this.getLobbyData = function () {
+    var lobby = [];
+    for (let p = 0; p < this.players.length; p++) {
+      const player = this.player[p];
+      lobby.push({ name: player.name, ready: player.isReady });
+    }
+    return lobby;
   };
 
   // deals all cards out and places them in property piles
@@ -119,6 +149,7 @@ function Deck() {
     "power",
     "building",
   ];
+
   //loop over card types
   for (let t = 0; t < cardTypes.length; t++) {
     const cardType = cardTypes[t];
@@ -129,9 +160,13 @@ function Deck() {
       // loops if more than one of this same card
       for (let j = 0; j < cardEntry.numberof; j++) {
         var newCard = new Card(cardType, cardEntry, j);
-        const img = nameImage(newCard, j);
-        newCard.cardImgString = img;
-
+        var name = cardEntry.name;
+        var id = name + j;
+        if (cardType === "prop") {
+          name = name.concat(j + 1);
+        }
+        newCard.name = name;
+        newCard.id = id;
         this.cards.push(newCard);
       }
     }
@@ -142,7 +177,7 @@ function Deck() {
     this.discarded = [];
   };
 
-  this.discard = function (card) {
+  this.addToDiscard = function (card) {
     this.discarded.push(card);
   };
 }
@@ -154,19 +189,14 @@ function Player(id, name, position) {
   this.hand = [];
   this.property = [];
   this.money = [];
+  this.isReady = false;
   this.hasJustSayNo = false;
   this.position = position;
 
   // player turn:
-  this.takeTurn = function () {
+  this.startTurn = function () {
     this.movesRemaining = 3; //
-    this.getMove(this.movesRemaining);
-    while (true) {
-      if (this.movesRemaining === 0) {
-        break;
-      }
-    }
-    this.checkHandTooBig();
+    io.to(this.socketID).emit("move", {movesRemaining: this.movesRemaining});
   };
 
   // get private data for this player
@@ -184,29 +214,34 @@ function Player(id, name, position) {
     return {
       name: this.name,
       property: this.property,
-      moneyTopCard: this.money[0],
-      moneyCardCount: this.money.length,
-      handCardCount: this.hand.length,
+      // number of hand cards counted as "money" to make things easier
+      money: {
+        moneyTopCard: this.money[0],
+        moneyCardCount: this.money.length,
+        handCardCount: this.hand.length,
+      },
     };
   };
 
   // send all game data to client
   this.sendAllGameData = function (game) {
     // gets data from other players relative to this player position
-    var OtherPlayerData = [];
+    var playerData = [];
+    // inserts user player at position[0]
+    playerData.push(this.getPrivateData());
     var relPos = positionRelative(game.players.length, this.position);
     for (let i = 1; i < relPos.length; i++) {
-      // i=1 to not include player position
+      // i=1 to not include user player
       p = relPos[i];
-      OtherPlayerData.push(game.players[p].getPublicData());
+      playerData.push(game.players[p].getPublicData());
     }
 
     // Collates and sends game data
     gameData = {
-      privateData: this.getPrivateData(),
-      publicData: OtherPlayerData,
+      playerData: playerData,
       tableData: game.getDeckPublicData(),
     };
+
     io.to(this.socketID).emit("gameData", gameData);
     fs.writeFile(
       "test_game_data.json",
@@ -217,16 +252,28 @@ function Player(id, name, position) {
     );
   };
 
-  // requests move from client
-  this.getMove = function (movesRemaining) {
-    io.to(this.socketID).emit("move", movesRemaining);
-  };
-
   // draws a card from deck into players hand
   this.giveHandCard = function (deck) {
     card = deck.cards.pop();
     this.hand.push(card);
     io.to(this.socketID).emit("pushHand", card);
+  };
+
+  this.playHandCard = function (id) {
+    for (let c = 0; c < this.cards.length; c++) {
+      // check if card exists
+      if (this.cards[c].id === id) {
+
+      }
+      // need to get list of methods for each card,
+      // then ask player for choice if more than one
+      // if rent-any or power card, need to ask player to choose
+      // also if stealing, need to ask player to choose
+      // if asking for player/cards off table, this needs to be interactive
+
+      // need to write functions for all player actions!
+
+    }
   };
 
   // checks if hand has more cards than allowed
@@ -354,36 +401,8 @@ function shuffle(a) {
   return a;
 }
 
-// card image getter
-function nameImage(card, cardNum) {
-  var cardType = card.cardType;
-
-  // this is a fucking mess, surely there's a better way:
-  if (cardType === "cash") {
-    return "money-" + cardNum;
-  } else if (cardType === "prop") {
-    return "prop-" + card.card.colour + "-" + cardNum;
-  } else if (cardType === "propWC") {
-    var revColour = card.card.revColour;
-    return "prop-wildcard-" + card.card.colour + "-" + revColour;
-  } else if (cardType === "propAny") {
-    return "prop-any.png";
-  } else if (cardType === "rent") {
-    const colours = card.card.rentColours;
-    return "rent-" + colours[0] + "-" + colours[1];
-  } else if (cardType === "rentAny") {
-    return "rentAny.png";
-  } else if (cardType === "power") {
-    return card.card.powerStr;
-  } else if (cardType === "building") {
-    return card.card.building;
-  } else {
-    console.log(" VERY LARGE ERROR ");
-  }
-}
-
 // Game start
-// game = new Game(); - starting game inside socket for testing
+game = new Game();
 
 //
 // SERVER SETUP
@@ -411,19 +430,24 @@ io.on("connection", function (socket) {
     game = new Game();
     game.addPlayer(socket.id, data.name);
     console.log("Added player: " + data.name);
-    game.testFrontEnd();
-    /*
-    UNCOMMENT THIS:
-    socket.emit("gameStatus", waiting );
-    game.playersNotReady++;
-    */
   });
 
-  // Check if players are ready
+  // Check if players are ready, if they are, start game
   socket.on("ready", function () {
-    game.playersNotReady--;
-    if (game.players.length > 1 && game.playersNotReady === 0) {
+    var player = game.getPlayerByID(socket.id);
+    player.isReady = true;
+    if (game.players.length > 1 && game.allPlayersReady()) {
+      game.gameStarted = true;
       game.startGame();
     }
+    io.emit("gameStatus", {
+      gameStarted: game.gameStarted,
+      players: game.getLobbyData(),
+    });
   });
+
+  socket.on("move", function (data) {
+    var player = game.getPlayerByID(socket.id);
+    player.playHandCard(data.id);
+  })
 });
