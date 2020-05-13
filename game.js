@@ -22,9 +22,9 @@ Game = function () {
 
   this.startGame = function () {
     this.gameStarted = true;
-    shuffle(this.players);
+    //this.players = shuffle(this.players);
     this.deck = new Deck();
-    shuffle(this.deck.cards);
+    this.deck.cards = shuffle(this.deck.cards);
 
     const numberOfStartingCards = 5;
     const cardsPerTurn = 2;
@@ -68,7 +68,8 @@ Game = function () {
   this.getDeckPublicData = function () {
     tableData = {
       deckCardCount: this.deck.cards.length,
-      lastDiscardedCard: this.deck.discarded[this.deck.discarded.length - 1],
+      discardedCount: this.deck.discarded.length,
+      discardedTopCard: this.deck.discarded[this.deck.discarded.length - 1],
     };
     return tableData;
   };
@@ -76,6 +77,7 @@ Game = function () {
   // deals all cards out and places them in property piles
   // user player should already be added
   this.testFrontEnd = function () {
+    var handCards = 0;
     console.log("starting front end test");
     this.deck = new Deck();
     shuffle(this.deck);
@@ -89,7 +91,10 @@ Game = function () {
       var card = this.deck.cards.pop();
       if (card.isprop()) {
         this.players[Math.floor(Math.random() * 5)].addCardToProp(card);
-      } else if (card.hasValue()) {
+      } else if (handCards < 7) {
+        this.players[Math.floor(Math.random() * 5)].hand.push(card);
+        handCards++;
+      } else {
         this.players[Math.floor(Math.random() * 5)].money.push(card);
       }
     }
@@ -104,14 +109,29 @@ function Deck() {
   this.discarded = [];
 
   // Generate cards:
-  cardTypes = ["prop", "propWC", "propAny", "cash", "rent", "power"];
+  cardTypes = [
+    "prop",
+    "propWC",
+    "propAny",
+    "cash",
+    "rent",
+    "rentAny",
+    "power",
+    "building",
+  ];
+  //loop over card types
   for (let t = 0; t < cardTypes.length; t++) {
     const cardType = cardTypes[t];
     const cardGroup = cards.CARDS[cardType];
+    // loop over cards
     for (let i = 0; i < cardGroup.length; i++) {
       const cardEntry = cardGroup[i];
+      // loops if more than one of this same card
       for (let j = 0; j < cardEntry.numberof; j++) {
         var newCard = new Card(cardType, cardEntry, j);
+        const img = nameImage(newCard, j);
+        newCard.cardImgString = img;
+
         this.cards.push(newCard);
       }
     }
@@ -337,23 +357,29 @@ function shuffle(a) {
 // card image getter
 function nameImage(card, cardNum) {
   var cardType = card.cardType;
-  var colour = card.colour;
 
+  // this is a fucking mess, surely there's a better way:
   if (cardType === "cash") {
-    return "money-" + cardNum + ".png"
+    return "money-" + cardNum;
   } else if (cardType === "prop") {
-    return "prop-" + colour + "-" + cardNum + ".png"
+    return "prop-" + card.card.colour + "-" + cardNum;
   } else if (cardType === "propWC") {
-    var revColour = card.revColour;
-    return "prop-wildcard-" + colour + "-" + revColour + ".png"
+    var revColour = card.card.revColour;
+    return "prop-wildcard-" + card.card.colour + "-" + revColour;
   } else if (cardType === "propAny") {
-    return "prop-any.png"
+    return "prop-any.png";
   } else if (cardType === "rent") {
-    // get colours????
-    return "rent-" + colour1 + "-" + colour2 + ".png"
+    const colours = card.card.rentColours;
+    return "rent-" + colours[0] + "-" + colours[1];
+  } else if (cardType === "rentAny") {
+    return "rentAny.png";
   } else if (cardType === "power") {
-
-  } else { console.log(" BIG ERROR ") }
+    return card.card.powerStr;
+  } else if (cardType === "building") {
+    return card.card.building;
+  } else {
+    console.log(" VERY LARGE ERROR ");
+  }
 }
 
 // Game start

@@ -75,7 +75,7 @@ exports.CARDS = {
       colour: "yellow",
       numberof: 3,
       value: 3,
-    },
+    }
   ],
   propWC: [
     // Wildcards
@@ -120,14 +120,14 @@ exports.CARDS = {
       numberof: 1,
       value: 3,
       reverseColour: "red",
-    },
+    }
   ],
   propAny: [
     {
       colour: "any",
       numberof: 2,
       value: 0,
-    },
+    }
   ],
   cash: [
     {
@@ -153,14 +153,16 @@ exports.CARDS = {
     {
       value: 1,
       numberof: 6,
-    },
+    }
   ],
-  rent: [
+  rentAny: [
     {
       value: 3,
       RentColours: "any",
       numberof: 3,
-    },
+    }
+  ],
+  rent: [
     {
       value: 1,
       rentColours: ["dblue", "green"],
@@ -185,53 +187,62 @@ exports.CARDS = {
       value: 1,
       rentColours: ["red", "yellow"],
       numberof: 2,
-    },
+    }
   ],
   power: [
     {
+      powerStr: "dealBreaker",
       power: dealBreaker,
       value: 5,
       numberof: 2,
     },
     {
+      powerStr: "debtCollector",
       power: debtCollector,
       value: 3,
       numberof: 3,
     },
     {
+      powerStr: "doubleTheRent",
       power: doubleTheRent,
       value: 1,
       numberof: 1,
     },
     {
+      powerStr: "forcedDeal",
       power: forcedDeal,
       value: 3,
       numberof: 3,
     },
     {
+      powerStr: "itsMyBirthday",
       power: itsMyBirthday,
       value: 2,
       numberof: 3,
     },
     {
+      powerStr: "slyDeal",
       power: slyDeal,
       value: 3,
       numberof: 3,
     },
     {
+      powerStr: "passGo",
       power: passGo,
       value: 1,
       numberof: 10,
-    },
+    }
+  ],
+  building: [
     {
-      power: hotel,
+      building: "house",
       value: 4,
       numberof: 3,
     },
     {
-      power: house,
+      building: "hotel",
       value: 3,
       numberof: 3,
-    },
-  ],
+    }
+  ]
 };

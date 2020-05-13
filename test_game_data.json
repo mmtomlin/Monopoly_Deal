@@ -6,88 +6,63 @@
         "cards": [
           {
             "card": {
-              "colour": "lblue",
-              "numberof": 1,
-              "value": 4,
-              "reverseColour": "rail",
-              "id": 0
-            },
-            "cardType": "propWC"
-          }
-        ],
-        "colour": "lblue"
-      },
-      {
-        "cards": [
-          {
-            "card": {
-              "colour": "green",
-              "numberof": 1,
-              "value": 4,
-              "reverseColour": "rail",
-              "id": 0
-            },
-            "cardType": "propWC"
-          },
-          {
-            "card": {
-              "colour": "green",
-              "numberof": 3,
-              "value": 4,
-              "id": 2
-            },
-            "cardType": "prop"
-          }
-        ],
-        "colour": "green"
-      },
-      {
-        "cards": [
-          {
-            "card": {
-              "colour": "yellow",
+              "colour": "red",
               "numberof": 3,
               "value": 3,
               "id": 2
             },
-            "cardType": "prop"
+            "cardType": "prop",
+            "cardImgString": "prop-red-1"
           }
         ],
-        "colour": "yellow"
+        "colour": "red"
       },
       {
         "cards": [
           {
             "card": {
-              "colour": "orange",
-              "numberof": 3,
+              "colour": "rail",
+              "numberof": 4,
               "value": 2,
-              "id": 2
+              "id": 3
             },
-            "cardType": "prop"
-          }
-        ],
-        "colour": "orange"
-      },
-      {
-        "cards": [
-          {
-            "card": {
-              "colour": "brown",
-              "numberof": 2,
-              "value": 1,
-              "id": 1
-            },
-            "cardType": "prop"
+            "cardType": "prop",
+            "cardImgString": "prop-rail-3"
           },
           {
             "card": {
+              "colour": "rail",
+              "numberof": 4,
+              "value": 2,
+              "id": 3
+            },
+            "cardType": "prop",
+            "cardImgString": "prop-rail-2"
+          },
+          {
+            "card": {
+              "colour": "rail",
+              "numberof": 4,
+              "value": 2,
+              "id": 3
+            },
+            "cardType": "prop",
+            "cardImgString": "prop-rail-1"
+          }
+        ],
+        "colour": "rail"
+      },
+      {
+        "cards": [
+          {
+            "card": {
               "colour": "brown",
               "numberof": 2,
               "value": 1,
               "id": 1
             },
-            "cardType": "prop"
+            "cardType": "prop",
+            "cardImgString": "prop-brown-1"
           }
         ],
         "colour": "brown"
@@ -96,47 +71,83 @@
     "money": [
       {
         "card": {
-          "value": 3,
-          "numberof": 3,
-          "id": 2
-        },
-        "cardType": "power"
-      },
-      {
-        "card": {
+          "powerStr": "passGo",
           "value": 1,
           "numberof": 10,
           "id": 9
         },
-        "cardType": "power"
+        "cardType": "power",
+        "cardImgString": "passGo"
       },
       {
         "card": {
-          "value": 3,
-          "numberof": 3,
-          "id": 2
-        },
-        "cardType": "power"
-      },
-      {
-        "card": {
-          "value": 3,
-          "numberof": 3,
-          "id": 2
-        },
-        "cardType": "power"
-      },
-      {
-        "card": {
+          "powerStr": "passGo",
           "value": 1,
-          "rentColours": [
-            "rail",
-            "utility"
-          ],
+          "numberof": 10,
+          "id": 9
+        },
+        "cardType": "power",
+        "cardImgString": "passGo"
+      },
+      {
+        "card": {
+          "powerStr": "slyDeal",
+          "value": 3,
+          "numberof": 3,
+          "id": 2
+        },
+        "cardType": "power",
+        "cardImgString": "slyDeal"
+      },
+      {
+        "card": {
+          "powerStr": "itsMyBirthday",
+          "value": 2,
+          "numberof": 3,
+          "id": 2
+        },
+        "cardType": "power",
+        "cardImgString": "itsMyBirthday"
+      },
+      {
+        "card": {
+          "powerStr": "doubleTheRent",
+          "value": 1,
+          "numberof": 1,
+          "id": 0
+        },
+        "cardType": "power",
+        "cardImgString": "doubleTheRent"
+      },
+      {
+        "card": {
+          "powerStr": "debtCollector",
+          "value": 3,
+          "numberof": 3,
+          "id": 2
+        },
+        "cardType": "power",
+        "cardImgString": "debtCollector"
+      },
+      {
+        "card": {
+          "powerStr": "debtCollector",
+          "value": 3,
+          "numberof": 3,
+          "id": 2
+        },
+        "cardType": "power",
+        "cardImgString": "debtCollector"
+      },
+      {
+        "card": {
+          "powerStr": "dealBreaker",
+          "value": 5,
           "numberof": 2,
           "id": 1
         },
-        "cardType": "rent"
+        "cardType": "power",
+        "cardImgString": "dealBreaker"
       },
       {
         "card": {
@@ -145,7 +156,43 @@
           "numberof": 3,
           "id": 2
         },
-        "cardType": "rent"
+        "cardType": "rentAny",
+        "cardImgString": "rentAny.png"
+      },
+      {
+        "card": {
+          "value": 1,
+          "rentColours": [
+            "red",
+            "yellow"
+          ],
+          "numberof": 2,
+          "id": 1
+        },
+        "cardType": "rent",
+        "cardImgString": "rent-red-yellow"
+      },
+      {
+        "card": {
+          "value": 1,
+          "rentColours": [
+            "dblue",
+            "green"
+          ],
+          "numberof": 2,
+          "id": 1
+        },
+        "cardType": "rent",
+        "cardImgString": "rent-dblue-green"
+      },
+      {
+        "card": {
+          "value": 1,
+          "numberof": 6,
+          "id": 5
+        },
+        "cardType": "cash",
+        "cardImgString": "money-4"
       },
       {
         "card": {
@@ -153,15 +200,8 @@
           "numberof": 5,
           "id": 4
         },
-        "cardType": "cash"
-      },
-      {
-        "card": {
-          "value": 2,
-          "numberof": 5,
-          "id": 4
-        },
-        "cardType": "cash"
+        "cardType": "cash",
+        "cardImgString": "money-1"
       },
       {
         "card": {
@@ -169,15 +209,295 @@
           "numberof": 3,
           "id": 2
         },
-        "cardType": "cash"
+        "cardType": "cash",
+        "cardImgString": "money-2"
+      },
+      {
+        "card": {
+          "value": 3,
+          "numberof": 3,
+          "id": 2
+        },
+        "cardType": "cash",
+        "cardImgString": "money-0"
+      },
+      {
+        "card": {
+          "value": 4,
+          "numberof": 3,
+          "id": 2
+        },
+        "cardType": "cash",
+        "cardImgString": "money-2"
       }
     ],
-    "hand": []
+    "hand": [
+      {
+        "card": {
+          "powerStr": "passGo",
+          "value": 1,
+          "numberof": 10,
+          "id": 9
+        },
+        "cardType": "power",
+        "cardImgString": "passGo"
+      }
+    ]
   },
   "publicData": [
     {
       "name": "bob",
       "property": [
+        {
+          "cards": [
+            {
+              "card": {
+                "colour": "green",
+                "numberof": 1,
+                "value": 4,
+                "reverseColour": "rail",
+                "id": 0
+              },
+              "cardType": "propWC",
+              "cardImgString": "prop-wildcard-green-undefined"
+            },
+            {
+              "card": {
+                "colour": "green",
+                "numberof": 3,
+                "value": 4,
+                "id": 2
+              },
+              "cardType": "prop",
+              "cardImgString": "prop-green-2"
+            },
+            {
+              "card": {
+                "colour": "green",
+                "numberof": 3,
+                "value": 4,
+                "id": 2
+              },
+              "cardType": "prop",
+              "cardImgString": "prop-green-1"
+            }
+          ],
+          "colour": "green"
+        },
+        {
+          "cards": [
+            {
+              "card": {
+                "colour": "yellow",
+                "numberof": 3,
+                "value": 3,
+                "id": 2
+              },
+              "cardType": "prop",
+              "cardImgString": "prop-yellow-0"
+            }
+          ],
+          "colour": "yellow"
+        },
+        {
+          "cards": [
+            {
+              "card": {
+                "colour": "red",
+                "numberof": 3,
+                "value": 3,
+                "id": 2
+              },
+              "cardType": "prop",
+              "cardImgString": "prop-red-0"
+            }
+          ],
+          "colour": "red"
+        },
+        {
+          "cards": [
+            {
+              "card": {
+                "colour": "purple",
+                "numberof": 3,
+                "value": 2,
+                "id": 2
+              },
+              "cardType": "prop",
+              "cardImgString": "prop-purple-1"
+            }
+          ],
+          "colour": "purple"
+        },
+        {
+          "cards": [
+            {
+              "card": {
+                "colour": "orange",
+                "numberof": 3,
+                "value": 2,
+                "id": 2
+              },
+              "cardType": "prop",
+              "cardImgString": "prop-orange-0"
+            }
+          ],
+          "colour": "orange"
+        },
+        {
+          "cards": [
+            {
+              "card": {
+                "colour": "lblue",
+                "numberof": 3,
+                "value": 1,
+                "id": 2
+              },
+              "cardType": "prop",
+              "cardImgString": "prop-lblue-2"
+            }
+          ],
+          "colour": "lblue"
+        },
+        {
+          "cards": [
+            {
+              "card": {
+                "colour": "dblue",
+                "numberof": 2,
+                "value": 4,
+                "id": 1
+              },
+              "cardType": "prop",
+              "cardImgString": "prop-dblue-0"
+            }
+          ],
+          "colour": "dblue"
+        }
+      ],
+      "moneyTopCard": {
+        "card": {
+          "powerStr": "debtCollector",
+          "value": 3,
+          "numberof": 3,
+          "id": 2
+        },
+        "cardType": "power",
+        "cardImgString": "debtCollector"
+      },
+      "moneyCardCount": 8,
+      "handCardCount": 2
+    },
+    {
+      "name": "steve",
+      "property": [
+        {
+          "cards": [
+            {
+              "card": {
+                "colour": "any",
+                "numberof": 2,
+                "value": 0,
+                "id": 1
+              },
+              "cardType": "propAny",
+              "cardImgString": "prop-any.png"
+            }
+          ],
+          "colour": "any"
+        },
+        {
+          "cards": [
+            {
+              "card": {
+                "colour": "utility",
+                "numberof": 2,
+                "value": 2,
+                "id": 1
+              },
+              "cardType": "prop",
+              "cardImgString": "prop-utility-0"
+            }
+          ],
+          "colour": "utility"
+        },
+        {
+          "cards": [
+            {
+              "card": {
+                "colour": "purple",
+                "numberof": 3,
+                "value": 2,
+                "id": 2
+              },
+              "cardType": "prop",
+              "cardImgString": "prop-purple-0"
+            }
+          ],
+          "colour": "purple"
+        },
+        {
+          "cards": [
+            {
+              "card": {
+                "colour": "lblue",
+                "numberof": 3,
+                "value": 1,
+                "id": 2
+              },
+              "cardType": "prop",
+              "cardImgString": "prop-lblue-1"
+            }
+          ],
+          "colour": "lblue"
+        },
+        {
+          "cards": [
+            {
+              "card": {
+                "colour": "green",
+                "numberof": 3,
+                "value": 4,
+                "id": 2
+              },
+              "cardType": "prop",
+              "cardImgString": "prop-green-0"
+            }
+          ],
+          "colour": "green"
+        }
+      ],
+      "moneyTopCard": {
+        "card": {
+          "powerStr": "itsMyBirthday",
+          "value": 2,
+          "numberof": 3,
+          "id": 2
+        },
+        "cardType": "power",
+        "cardImgString": "itsMyBirthday"
+      },
+      "moneyCardCount": 5,
+      "handCardCount": 0
+    },
+    {
+      "name": "derek",
+      "property": [
+        {
+          "cards": [
+            {
+              "card": {
+                "colour": "any",
+                "numberof": 2,
+                "value": 0,
+                "id": 1
+              },
+              "cardType": "propAny",
+              "cardImgString": "prop-any.png"
+            }
+          ],
+          "colour": "any"
+        },
         {
           "cards": [
             {
@@ -188,7 +508,8 @@
                 "reverseColour": "red",
                 "id": 0
               },
-              "cardType": "propWC"
+              "cardType": "propWC",
+              "cardImgString": "prop-wildcard-yellow-undefined"
             },
             {
               "card": {
@@ -197,16 +518,8 @@
                 "value": 3,
                 "id": 2
               },
-              "cardType": "prop"
-            },
-            {
-              "card": {
-                "colour": "yellow",
-                "numberof": 3,
-                "value": 3,
-                "id": 2
-              },
-              "cardType": "prop"
+              "cardType": "prop",
+              "cardImgString": "prop-yellow-2"
             }
           ],
           "colour": "yellow"
@@ -221,203 +534,9 @@
                 "reverseColour": "rail",
                 "id": 0
               },
-              "cardType": "propWC"
-            }
-          ],
-          "colour": "utility"
-        },
-        {
-          "cards": [
-            {
-              "card": {
-                "colour": "orange",
-                "numberof": 1,
-                "value": 2,
-                "reverseColour": "purple",
-                "id": 0
-              },
-              "cardType": "propWC"
-            }
-          ],
-          "colour": "orange"
-        },
-        {
-          "cards": [
-            {
-              "card": {
-                "colour": "rail",
-                "numberof": 4,
-                "value": 2,
-                "id": 3
-              },
-              "cardType": "prop"
-            }
-          ],
-          "colour": "rail"
-        },
-        {
-          "cards": [
-            {
-              "card": {
-                "colour": "green",
-                "numberof": 3,
-                "value": 4,
-                "id": 2
-              },
-              "cardType": "prop"
-            }
-          ],
-          "colour": "green"
-        },
-        {
-          "cards": [
-            {
-              "card": {
-                "colour": "dblue",
-                "numberof": 2,
-                "value": 4,
-                "id": 1
-              },
-              "cardType": "prop"
+              "cardType": "propWC",
+              "cardImgString": "prop-wildcard-utility-undefined"
             },
-            {
-              "card": {
-                "colour": "dblue",
-                "numberof": 2,
-                "value": 4,
-                "id": 1
-              },
-              "cardType": "prop"
-            }
-          ],
-          "colour": "dblue"
-        }
-      ],
-      "moneyTopCard": {
-        "card": {
-          "value": 3,
-          "numberof": 3,
-          "id": 2
-        },
-        "cardType": "power"
-      },
-      "moneyCardCount": 15,
-      "handCardCount": 0
-    },
-    {
-      "name": "steve",
-      "property": [
-        {
-          "cards": [
-            {
-              "card": {
-                "colour": "any",
-                "numberof": 2,
-                "value": 0,
-                "id": 1
-              },
-              "cardType": "propAny"
-            }
-          ],
-          "colour": "any"
-        },
-        {
-          "cards": [
-            {
-              "card": {
-                "colour": "lblue",
-                "numberof": 1,
-                "value": 1,
-                "reverseColour": "brown",
-                "id": 0
-              },
-              "cardType": "propWC"
-            }
-          ],
-          "colour": "lblue"
-        },
-        {
-          "cards": [
-            {
-              "card": {
-                "colour": "red",
-                "numberof": 3,
-                "value": 3,
-                "id": 2
-              },
-              "cardType": "prop"
-            },
-            {
-              "card": {
-                "colour": "red",
-                "numberof": 3,
-                "value": 3,
-                "id": 2
-              },
-              "cardType": "prop"
-            }
-          ],
-          "colour": "red"
-        },
-        {
-          "cards": [
-            {
-              "card": {
-                "colour": "rail",
-                "numberof": 4,
-                "value": 2,
-                "id": 3
-              },
-              "cardType": "prop"
-            }
-          ],
-          "colour": "rail"
-        },
-        {
-          "cards": [
-            {
-              "card": {
-                "colour": "purple",
-                "numberof": 3,
-                "value": 2,
-                "id": 2
-              },
-              "cardType": "prop"
-            }
-          ],
-          "colour": "purple"
-        },
-        {
-          "cards": [
-            {
-              "card": {
-                "colour": "orange",
-                "numberof": 3,
-                "value": 2,
-                "id": 2
-              },
-              "cardType": "prop"
-            }
-          ],
-          "colour": "orange"
-        }
-      ],
-      "moneyTopCard": {
-        "card": {
-          "value": 4,
-          "numberof": 3,
-          "id": 2
-        },
-        "cardType": "power"
-      },
-      "moneyCardCount": 12,
-      "handCardCount": 0
-    },
-    {
-      "name": "derek",
-      "property": [
-        {
-          "cards": [
             {
               "card": {
                 "colour": "utility",
@@ -425,99 +544,11 @@
                 "value": 2,
                 "id": 1
               },
-              "cardType": "prop"
+              "cardType": "prop",
+              "cardImgString": "prop-utility-1"
             }
           ],
           "colour": "utility"
-        },
-        {
-          "cards": [
-            {
-              "card": {
-                "colour": "purple",
-                "numberof": 3,
-                "value": 2,
-                "id": 2
-              },
-              "cardType": "prop"
-            },
-            {
-              "card": {
-                "colour": "purple",
-                "numberof": 3,
-                "value": 2,
-                "id": 2
-              },
-              "cardType": "prop"
-            }
-          ],
-          "colour": "purple"
-        },
-        {
-          "cards": [
-            {
-              "card": {
-                "colour": "orange",
-                "numberof": 3,
-                "value": 2,
-                "id": 2
-              },
-              "cardType": "prop"
-            }
-          ],
-          "colour": "orange"
-        },
-        {
-          "cards": [
-            {
-              "card": {
-                "colour": "lblue",
-                "numberof": 3,
-                "value": 1,
-                "id": 2
-              },
-              "cardType": "prop"
-            },
-            {
-              "card": {
-                "colour": "lblue",
-                "numberof": 3,
-                "value": 1,
-                "id": 2
-              },
-              "cardType": "prop"
-            }
-          ],
-          "colour": "lblue"
-        }
-      ],
-      "moneyTopCard": {
-        "card": {
-          "value": 4,
-          "numberof": 3,
-          "id": 2
-        },
-        "cardType": "power"
-      },
-      "moneyCardCount": 14,
-      "handCardCount": 0
-    },
-    {
-      "name": "paul",
-      "property": [
-        {
-          "cards": [
-            {
-              "card": {
-                "colour": "any",
-                "numberof": 2,
-                "value": 0,
-                "id": 1
-              },
-              "cardType": "propAny"
-            }
-          ],
-          "colour": "any"
         },
         {
           "cards": [
@@ -529,7 +560,8 @@
                 "reverseColour": "green",
                 "id": 0
               },
-              "cardType": "propWC"
+              "cardType": "propWC",
+              "cardImgString": "prop-wildcard-dblue-undefined"
             }
           ],
           "colour": "dblue"
@@ -538,52 +570,46 @@
           "cards": [
             {
               "card": {
-                "colour": "utility",
-                "numberof": 2,
-                "value": 2,
-                "id": 1
-              },
-              "cardType": "prop"
-            }
-          ],
-          "colour": "utility"
-        },
-        {
-          "cards": [
-            {
-              "card": {
-                "colour": "red",
-                "numberof": 3,
-                "value": 3,
-                "id": 2
-              },
-              "cardType": "prop"
-            }
-          ],
-          "colour": "red"
-        },
-        {
-          "cards": [
-            {
-              "card": {
                 "colour": "rail",
                 "numberof": 4,
                 "value": 2,
                 "id": 3
               },
-              "cardType": "prop"
-            },
-            {
-              "card": {
-                "colour": "rail",
-                "numberof": 4,
-                "value": 2,
-                "id": 3
-              },
-              "cardType": "prop"
+              "cardType": "prop",
+              "cardImgString": "prop-rail-0"
             }
           ],
           "colour": "rail"
+        },
+        {
+          "cards": [
+            {
+              "card": {
+                "colour": "purple",
+                "numberof": 3,
+                "value": 2,
+                "id": 2
+              },
+              "cardType": "prop",
+              "cardImgString": "prop-purple-2"
+            }
+          ],
+          "colour": "purple"
+        },
+        {
+          "cards": [
+            {
+              "card": {
+                "colour": "orange",
+                "numberof": 3,
+                "value": 2,
+                "id": 2
+              },
+              "cardType": "prop",
+              "cardImgString": "prop-orange-1"
+            }
+          ],
+          "colour": "orange"
         },
         {
           "cards": [
@@ -594,7 +620,52 @@
                 "value": 1,
                 "id": 2
               },
-              "cardType": "prop"
+              "cardType": "prop",
+              "cardImgString": "prop-lblue-0"
+            }
+          ],
+          "colour": "lblue"
+        }
+      ],
+      "moneyTopCard": {
+        "card": {
+          "powerStr": "passGo",
+          "value": 1,
+          "numberof": 10,
+          "id": 9
+        },
+        "cardType": "power",
+        "cardImgString": "passGo"
+      },
+      "moneyCardCount": 12,
+      "handCardCount": 2
+    },
+    {
+      "name": "paul",
+      "property": [
+        {
+          "cards": [
+            {
+              "card": {
+                "colour": "lblue",
+                "numberof": 1,
+                "value": 4,
+                "reverseColour": "rail",
+                "id": 0
+              },
+              "cardType": "propWC",
+              "cardImgString": "prop-wildcard-lblue-undefined"
+            },
+            {
+              "card": {
+                "colour": "lblue",
+                "numberof": 1,
+                "value": 1,
+                "reverseColour": "brown",
+                "id": 0
+              },
+              "cardType": "propWC",
+              "cardImgString": "prop-wildcard-lblue-undefined"
             }
           ],
           "colour": "lblue"
@@ -603,27 +674,101 @@
           "cards": [
             {
               "card": {
-                "colour": "green",
+                "colour": "orange",
+                "numberof": 1,
+                "value": 2,
+                "reverseColour": "purple",
+                "id": 0
+              },
+              "cardType": "propWC",
+              "cardImgString": "prop-wildcard-orange-undefined"
+            },
+            {
+              "card": {
+                "colour": "orange",
                 "numberof": 3,
-                "value": 4,
+                "value": 2,
                 "id": 2
               },
-              "cardType": "prop"
+              "cardType": "prop",
+              "cardImgString": "prop-orange-2"
             }
           ],
-          "colour": "green"
+          "colour": "orange"
+        },
+        {
+          "cards": [
+            {
+              "card": {
+                "colour": "yellow",
+                "numberof": 3,
+                "value": 3,
+                "id": 2
+              },
+              "cardType": "prop",
+              "cardImgString": "prop-yellow-1"
+            }
+          ],
+          "colour": "yellow"
+        },
+        {
+          "cards": [
+            {
+              "card": {
+                "colour": "red",
+                "numberof": 3,
+                "value": 3,
+                "id": 2
+              },
+              "cardType": "prop",
+              "cardImgString": "prop-red-2"
+            }
+          ],
+          "colour": "red"
+        },
+        {
+          "cards": [
+            {
+              "card": {
+                "colour": "dblue",
+                "numberof": 2,
+                "value": 4,
+                "id": 1
+              },
+              "cardType": "prop",
+              "cardImgString": "prop-dblue-1"
+            }
+          ],
+          "colour": "dblue"
+        },
+        {
+          "cards": [
+            {
+              "card": {
+                "colour": "brown",
+                "numberof": 2,
+                "value": 1,
+                "id": 1
+              },
+              "cardType": "prop",
+              "cardImgString": "prop-brown-0"
+            }
+          ],
+          "colour": "brown"
         }
       ],
       "moneyTopCard": {
         "card": {
-          "value": 3,
-          "numberof": 3,
-          "id": 2
+          "powerStr": "passGo",
+          "value": 1,
+          "numberof": 10,
+          "id": 9
         },
-        "cardType": "power"
+        "cardType": "power",
+        "cardImgString": "passGo"
       },
-      "moneyCardCount": 12,
-      "handCardCount": 0
+      "moneyCardCount": 14,
+      "handCardCount": 2
     }
   ],
   "tableData": {
