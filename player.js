@@ -4,6 +4,8 @@ const Street = require(__dirname + "/street.js")
 
 module.exports = Player;
 
+
+
 // Player prototype
 function Player(id, name, position) {
   this.name = name;
@@ -12,17 +14,24 @@ function Player(id, name, position) {
   this.property = [];
   this.money = [];
   this.isReady = false;
-  this.hasJustSayNo = false;
   this.position = position;
-  this.move = { isTurn: false, movesRemaining: 0 };
+  this.movesRemaining = 0;
+  this.rentMultiplier = 1;
 
   // player turn:
-  this.startTurn = function () {
-    this.move.movesRemaining = 3;
+  this.startTurn = function (game) {
+    this.drawCards(game.deck, 2);
+    this.movesRemaining = 3;
     io.to(this.socketID).emit("move", {
-      movesRemaining: this.move.movesRemaining,
+      movesRemaining: this.movesRemaining,
     });
   };
+
+  this.drawCards = function (deck, amount) {
+    for (let i = 0; i < amount; i++) {
+      this.hand.push(deck.drawCard());
+    }
+  }
 
   // get private data for this player
   this.getPrivateData = function () {
@@ -31,6 +40,7 @@ function Player(id, name, position) {
       property: this.property,
       money: this.money,
       hand: this.hand,
+      movesRemaining: this.movesRemaining,
     };
   };
 
@@ -45,6 +55,7 @@ function Player(id, name, position) {
         moneyCardCount: this.money.length,
         handCardCount: this.hand.length,
       },
+      movesRemaining: this.movesRemaining,
     };
   };
 
@@ -77,13 +88,6 @@ function Player(id, name, position) {
     );
   };
 
-  // draws a card from deck into players hand
-  this.giveHandCard = function (deck) {
-    card = deck.cards.pop();
-    this.hand.push(card);
-    io.to(this.socketID).emit("pushHand", card);
-  };
-
   // self-explanatory
   this.popHandCardById = function (id) {
     for (let c = 0; c < this.hand.length; c++) {
@@ -93,28 +97,60 @@ function Player(id, name, position) {
     }
   };
 
-  this.reArrangeCash = function () {
+  this.popPropCardById = function (id) {
+    //TODO
+  }
+
+  //self explanatory
+  this.getRentAmountByColour = function (colour) {
+    var rentAmount = 0;
+    for (let s = 0; s < this.property.length; s++) {
+      if (this.property[s].colour === colour) {
+        const rent = this.property[s].getRentAmount();
+        if (rent > rentamount) { rentAmount = rent };
+      }
+    }
+    return rentAmount
+  }
+
+  this.reArrangeCash = function (game) {
     //TODO
   };
 
-  this.reArrangeProperty = function () {
+  this.reArrangeProperty = function (game) {
     //TODO
   };
+
+  this.waitForMoney = function (game) {
+    //TODO
+  }
+
+  this.chargeOthers = function (amount, game) {
+    //TODO
+  }
+
+  this.chargeOther = function (amount, player) {
+    //TODO
+  }
 
   // deals with a card picked by player as part of move
-  // "options" added
+  // id is card id from client
   this.playHandCard = function (id, game, options = null) {
+   // TODO
+   // need to organise this better
+   // need to create mechanism to start next turn etc. decrement moveRemaining
+   // need to discard card
     for (let c = 0; c < this.cards.length; c++) {
       const card = this.cards[c];
-      var actions = [];
       // double checks if card exists in hand
       if (card.id === id) {
+        this.movesRemaining--
         // if card is cash, add to cash
-        if (card.cardType === "cash") {
+        if (card.cardType === "cash" || card.cardType === "justSayNo") {
           this.money.push(this.popHandCardById(id));
         // if card is prop / propAny / propWC, add to property
         } else if (card.cardType.slice(0, 4) === "prop") {
-          this.addCardToProp(this.popHandCardById(id));
+          this.addCardToProp(this.popHandCardById(id), game);
         // else the card needs options as it has more than one use
         // if options are defined:
         } else if (options !== null) {
@@ -123,10 +159,18 @@ function Player(id, name, position) {
         // else we need to get options from user:
         } else {
           card.getOptions(this);
+          this.movesRemaining++
+          break;
         }
       }
     }
   };
+
+  }
+
+  this.hasJustSayNo = function () {
+    //TODO
+  }
 
   // checks if hand has more cards than allowed
   this.checkHandTooBig = function (game) {
@@ -136,7 +180,7 @@ function Player(id, name, position) {
     }
   };
 
-  this.addCardToProp = function (card) {
+  this.addCardToProp = function (card, game) {
     colour = card.card.colour;
     var colourPresent = false;
     for (let i = 0; i < this.property.length; i++) {
@@ -147,7 +191,7 @@ function Player(id, name, position) {
       }
     }
     if (!colourPresent) {
-      this.property.push(new Street(card));
+      this.property.push(new Street(card, game));
     }
   };
 }

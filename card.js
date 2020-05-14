@@ -5,11 +5,19 @@ function Card(cardType, creatorObject, id) {
   this.card = creatorObject;
   this.card.id = id;
   this.cardType = cardType;
+
   if (this.cardType === "rent") {
     this.card.power = getRent;
   }
 
-  getRent = function () {
+  getRent = function (player, game, options) {
+    var rentAmount = player.getRentAmountByColour(options.colourPlayed) * player.rentMultiplier;
+    player.chargeOthers(rentAmount);
+    player.rentMultiplier = 1;
+    player.waitForMoney();
+  }
+
+  this.getOptions = function (card, player, game) {
     
   }
 
@@ -19,24 +27,6 @@ function Card(cardType, creatorObject, id) {
       var l = this.reverse;
       this.reverse = this.colour;
       this.colour = l;
-    }
-  };
-
-  this.getOptions = function (card, player, game) {
-
-  }
-
-  /*
-  // tests if the card is a property, only used in testFrontEnd
-  this.isprop = function () {
-    if (
-      this.cardType === "prop" ||
-      this.cardType === "propWC" ||
-      this.cardType === "propAny"
-    ) {
-      return true;
-    } else {
-      return false;
     }
   };
 
@@ -57,5 +47,4 @@ function Card(cardType, creatorObject, id) {
       return false;
     }
   };
-  */
 }

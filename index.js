@@ -4,6 +4,7 @@ const socketio = require("socket.io");
 const Game = require(__dirname + "/game.js")
 const shuffle = require(__dirname + "/shuffle.js")
 
+
 // Game start
 game = new Game();
 
@@ -19,6 +20,7 @@ app.get("/", function (req, res) {
   res.sendFile(__dirname + "/index.html");
 });
 
+
 // Socket setup
 var io = socketio(server);
 io.on("connection", function (socket) {
@@ -26,7 +28,6 @@ io.on("connection", function (socket) {
 
   // Initialise player, send waiting status
   socket.on("name", function (data) {
-    game = new Game();
     game.addPlayer(socket.id, data.name);
     console.log("Added player: " + data.name);
   });
@@ -36,7 +37,6 @@ io.on("connection", function (socket) {
     var player = game.getPlayerByID(socket.id);
     player.isReady = true;
     if (game.players.length > 1 && game.allPlayersReady()) {
-      game.gameStarted = true;
       game.startGame();
     }
     io.emit("gameStatus", {
@@ -47,6 +47,8 @@ io.on("connection", function (socket) {
 
   socket.on("move", function (data) {
     var player = game.getPlayerByID(socket.id);
-    player.playHandCard(data.id, game);
+    if (player.movesRemaining > 0) {
+      player.playHandCard(data.id, game, data.options);
+    }
   });
 });

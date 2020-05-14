@@ -1,9 +1,11 @@
 module.exports = Street;
 
 // Street prototype
-function Street(card) {
+function Street(card, game) {
   this.cards = [card];
   this.colour = card.card.colour;
+  this.streetID = game.streetCounter;
+  game.streetCounter++;
 
   // Rent amounts:
   const RENTS = {
@@ -27,7 +29,7 @@ function Street(card) {
     }
   };
 
-  this.getRent = function () {
+  this.getRentAmount = function () {
     if (RENTS[this.colour].length < this.cards.length) {
       return RENTS[this.colour][this.cards.length];
     } else {

@@ -6,45 +6,30 @@ const Player = require(__dirname + "/player.js")
 GAME HEIRARCHY = GAME > ROUND > TURN > MOVE
 */
 
+
 module.exports = Game;
 
 // Game prototype
 Game = function () {
   this.players = [];
   this.gameStarted = false;
+  this.streetCounter = 0;
 
   this.startGame = function () {
     this.players = shuffle(this.players);
     this.deck = new Deck();
     this.deck.cards = shuffle(this.deck.cards);
 
-    const numberOfStartingCards = 5;
-    const cardsPerTurn = 2;
+    const startCards = 5;
+    this.cardsPerTurn = 2;
     this.maxHandCards = 7;
 
     for (let p = 0; p < players.length; p++) {
       // lets each player know position
       this.players[p].position = p;
       // Draws 5 (numberOfStartingCards) cards:
-      for (let i = 0; i < numberOfStartingCards; i++) {
-        this.players[p].drawCard(this.deck);
-      }
+      this.players[p].drawCards(this.deck, startCards);
       this.players[p].sendAllGameData(this);
-    }
-
-    // main game-loop
-    while (!this.gameOver) {
-      this.doRound();
-    }
-
-    console.log(winner + " wins!");
-  };
-
-  // looping over players (per round operations)
-  this.doRound = function () {
-    // Iterate over players
-    for (let p = 0; p < players.length; p++) {
-      players[p].takeTurn();
     }
   };
 
@@ -75,6 +60,10 @@ Game = function () {
     }
   };
 
+  this.getPlayerByCardID = function (id) {
+    //TODO
+  }
+
   // gets deck public data
   this.getDeckPublicData = function () {
     var discardedCount = this.deck.discarded.length;
@@ -100,33 +89,10 @@ Game = function () {
     return lobby;
   };
 
-  // deals all cards out and places them in property piles
-  // user player should already be added
-  this.testFrontEnd = function () {
-    var handCards = 0;
-    console.log("starting front end test");
-    this.deck = new Deck();
-    shuffle(this.deck);
-    dummyPlayers = ["bob", "steve", "derek", "paul"];
-    // add dummy players:
-    for (let p = 0; p < dummyPlayers.length; p++) {
-      this.addPlayer(null, dummyPlayers[p]);
-    }
-    // loop over deck
-    for (let i = this.deck.cards.length; i > 0; i--) {
-      var card = this.deck.cards.pop();
-      if (card.isprop()) {
-        this.players[Math.floor(Math.random() * 5)].addCardToProp(card);
-      } else if (handCards < 7) {
-        this.players[Math.floor(Math.random() * 5)].hand.push(card);
-        handCards++;
-      } else {
-        this.players[Math.floor(Math.random() * 5)].money.push(card);
-      }
-    }
-    console.log("sending game data to client");
-    this.players[0].sendAllGameData(this);
-  };
+  //
+  this.getPlayerByRelPos (player, position) {
+    //TODO
+  }
 
   // Gives repositioned/rotated array indexes, relative to given starting index
   this.positionRelative = function (arraylength, index) {

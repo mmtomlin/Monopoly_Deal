@@ -1,5 +1,6 @@
 const Card = require(__dirname + "/card.js")
 
+
 module.exports = Deck;
 
 // Deck prototype
@@ -17,6 +18,7 @@ function Deck() {
     "rentAny",
     "power",
     "propB",
+    "justSayNo",
   ];
 
   //loop over card types
@@ -41,12 +43,15 @@ function Deck() {
     }
   }
 
-  this.flipPile = function () {
-    this.cards = this.discarded.reverse();
-    this.discarded = [];
-  };
-
-  this.addToDiscard = function (card) {
-    this.discarded.push(card);
-  };
+  // returns drawn card,
+  // if deck is empty flips over discard pile
+  this.drawCard = function () {
+    if (this.cards.length > 0) {
+      return this.cards.pop()
+    } else {
+      this.cards = this.discarded;
+      this.discarded = [];
+      return this.cards.pop()
+    }
+  }
 }

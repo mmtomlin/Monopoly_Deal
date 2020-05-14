@@ -1,27 +1,44 @@
 //card powers
-dealBreaker = function (game, player) {
-  console.log("deal breaker played");
+
+// options object = dealBreaker.streetID
+dealBreaker = function (game, player, options) {
+  const streetID = options.dealBreaker.streetID;
+  const victim = game.getPlayerByStreet(streetID);
+  player.property.push(victim.popStreetByID(streetID));
 };
-debtCollector = function (game, player) {
-  console.log("debt collector played");
+// options object = debtCollector.victim
+debtCollector = function (game, player, options) {
+  const victimRelPos = options.debtCollector.victim;
+  const victim = game.getPlayerByRelPosition(player.position, victimRelPos);
+  const charge = 5;
+  player.chargeOther(charge, victim);
 };
-doubleTheRent = function (game, player) {
-  console.log("double the rent played");
+// no options
+doubleTheRent = function (game, player, options) {
+  player.rentMultiplier = 2;
 };
-forcedDeal = function (geme, player) {
-  console.log("forced deal played");
+// options object = { forcedDeal.targetCardID, forcedDeal.swapCardID }
+forcedDeal = function (game, player, options) {
+  const targetCard = options.forcedDeal.targetCardID;
+  const swapCard = options.forcedDeal.swapCardID;
+  const victim = game.getPlayerByCardID(options);
+  player.addCardToProp(victim.popPropCardByID(targetCard));
+  victim.addCardToProp(player.popPropCardByID(swapCard));
 };
-itsMyBirthday = function (game, player) {
-  console.log("it's my birthday played");
+// no options
+itsMyBirthday = function (game, player, options) {
+  const charge = 2;
+  player.chargeOthers(charge, game);
 };
-slyDeal = function (game, player) {
-  console.log("sly deal played");
+// options object = { slyDeal.targetCardID }
+slyDeal = function (game, player, options) {
+  const targetCard = options.forcedDeal.targetCardID;
+  const victim = game.getPlayerByCardID(options);
+  player.addCardToProp(victim.popPropCardByID(targetCard));
 };
-passGo = function (game, player) {
-  console.log("pass go played");
-};
-justSayNo = function (game, player) {
-  console.log("jut say no played");
+// no options
+passGo = function (game, player, options) {
+  player.drawCards(game.deck, game.cardsPerTurn);
 };
 
 exports.CARDS = {
@@ -223,6 +240,13 @@ exports.CARDS = {
       name: "rent-red-yellow",
     },
   ],
+  justSayNo: [
+    {
+      name: "just-say-no",
+      value: 4,
+      numberof: 3,
+    },
+  ],
   rentAny: [
     {
       power: rentAny,
@@ -232,12 +256,6 @@ exports.CARDS = {
     },
   ],
   power: [
-    {
-      name: "just-say-no",
-      power: justSayNo,
-      value: 4,
-      numberof: 3,
-    },
     {
       name: "deal-breaker",
       power: dealBreaker,
