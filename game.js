@@ -34,10 +34,10 @@ Game = function () {
   };
 
   // adding a player:
-  this.addPlayer = function (id, name) {
+  this.addPlayer = function (socket, name) {
     const position = this.players.length;
     if (!this.gameStarted && position < 6) {
-      this.players.push(new Player(id, name, position));
+      this.players.push(new Player(socket, name, position));
     }
   };
 
@@ -49,15 +49,6 @@ Game = function () {
       }
     }
     return true;
-  };
-
-  // returns player object from socket id
-  this.getPlayerByID = function (id) {
-    for (let p = 0; p < this.players.length; p++) {
-      if (this.players[p].socketID === id) {
-        return this.players[p];
-      }
-    }
   };
 
   this.getPlayerByCardID = function (id) {
@@ -90,9 +81,9 @@ Game = function () {
   };
 
   //
-  this.getPlayerByRelPos (player, position) {
+  this.getPlayerByRelPos = function (player, position) {
     //TODO
-  }
+  };
 
   // Gives repositioned/rotated array indexes, relative to given starting index
   this.positionRelative = function (arraylength, index) {

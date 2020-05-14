@@ -1,15 +1,14 @@
 const fs = require("fs");
 
-const Street = require(__dirname + "/street.js")
+const Street = require(__dirname + "/street.js");
 
 module.exports = Player;
 
-
-
 // Player prototype
-function Player(id, name, position) {
+function Player(socket, name, position) {
   this.name = name;
-  this.socketID = id;
+  this.socket = socket;
+  this.id = socket.id;
   this.hand = [];
   this.property = [];
   this.money = [];
@@ -22,7 +21,7 @@ function Player(id, name, position) {
   this.startTurn = function (game) {
     this.drawCards(game.deck, 2);
     this.movesRemaining = 3;
-    io.to(this.socketID).emit("move", {
+    this.socket.emit("move", {
       movesRemaining: this.movesRemaining,
     });
   };
@@ -31,7 +30,7 @@ function Player(id, name, position) {
     for (let i = 0; i < amount; i++) {
       this.hand.push(deck.drawCard());
     }
-  }
+  };
 
   // get private data for this player
   this.getPrivateData = function () {
@@ -71,14 +70,13 @@ function Player(id, name, position) {
       p = relPos[i];
       playerData.push(game.players[p].getPublicData());
     }
-
     // Collates and sends game data
     gameData = {
       playerData: playerData,
       tableData: game.getDeckPublicData(),
     };
-
-    io.to(this.socketID).emit("gameData", gameData);
+    // emits game data
+    this.socket.emit("gameData", gameData);
     fs.writeFile(
       "test_game_data.json",
       JSON.stringify(gameData, null, 2),
@@ -98,8 +96,15 @@ function Player(id, name, position) {
   };
 
   this.popPropCardById = function (id) {
-    //TODO
-  }
+    for (let s = 0; s < this.property.length; s++) {
+      for (let c = 0; c < this.property[s].length; c++) {
+        const card = this.property[s][c].card;
+        if (card.id == id) {
+          return card; 
+        }
+      }
+    }
+  };
 
   //self explanatory
   this.getRentAmountByColour = function (colour) {
@@ -107,11 +112,13 @@ function Player(id, name, position) {
     for (let s = 0; s < this.property.length; s++) {
       if (this.property[s].colour === colour) {
         const rent = this.property[s].getRentAmount();
-        if (rent > rentamount) { rentAmount = rent };
+        if (rent > rentamount) {
+          rentAmount = rent;
+        }
       }
     }
-    return rentAmount
-  }
+    return rentAmount;
+  };
 
   this.reArrangeCash = function (game) {
     //TODO
@@ -121,78 +128,82 @@ function Player(id, name, position) {
     //TODO
   };
 
-  this.waitForMoney = function (game) {
-    //TODO
-  }
-
   this.chargeOthers = function (amount, game) {
-    //TODO
-  }
+    for (let p = 0; p < game.players.length; p++) {
+      const player = game.players[p];
+      if (player.id !== this.id) {
+        player.giveMoney(amount, this)
+      }
+    }
+  };
 
   this.chargeOther = function (amount, player) {
-    //TODO
+    player.giveMoney(amount, this)
+  };
+
+  this.giveMoney = function (amount, player) {
+    this.moneyOwed = amount;
+    this.socket.emit("pay", amount);
   }
 
   // deals with a card picked by player as part of move
   // id is card id from client
   this.playHandCard = function (id, game, options = null) {
-   // TODO
-   // need to organise this better
-   // need to create mechanism to start next turn etc. decrement moveRemaining
-   // need to discard card
+    // TODO
+    // need to organise this better
+    // need to create mechanism to start next turn etc. decrement moveRemaining
+    // wait for money, or accept steal etc.
+    // need to discard card
     for (let c = 0; c < this.cards.length; c++) {
       const card = this.cards[c];
       // double checks if card exists in hand
       if (card.id === id) {
-        this.movesRemaining--
+        this.movesRemaining--;
         // if card is cash, add to cash
         if (card.cardType === "cash" || card.cardType === "justSayNo") {
           this.money.push(this.popHandCardById(id));
-        // if card is prop / propAny / propWC, add to property
+          // if card is prop / propAny / propWC, add to property
         } else if (card.cardType.slice(0, 4) === "prop") {
           this.addCardToProp(this.popHandCardById(id), game);
-        // else the card needs options as it has more than one use
-        // if options are defined:
+          // else the card needs options as it has more than one use
+          // if options are defined:
         } else if (options !== null) {
-        // trigger card power
+          // trigger card power
           card.card.power(this, game, options);
-        // else we need to get options from user:
+          // else we need to get options from user:
         } else {
           card.getOptions(this);
-          this.movesRemaining++
+          this.movesRemaining++;
           break;
         }
       }
     }
   };
-
-  }
-
-  this.hasJustSayNo = function () {
-    //TODO
-  }
-
-  // checks if hand has more cards than allowed
-  this.checkHandTooBig = function (game) {
-    const excessCards = this.hand.cards.length - game.maxHandCards;
-    if (excessCards > 0) {
-      io.to(this.socketID).emit("forceDiscard", excessCards);
-    }
-  };
-
-  this.addCardToProp = function (card, game) {
-    colour = card.card.colour;
-    var colourPresent = false;
-    for (let i = 0; i < this.property.length; i++) {
-      if (colour === this.property[i].colour) {
-        colourPresent = true;
-        this.property[i].cards.push(card);
-        break;
-      }
-    }
-    if (!colourPresent) {
-      this.property.push(new Street(card, game));
-    }
-  };
 }
 
+this.hasJustSayNo = function () {
+  //TODO
+};
+
+// checks if hand has more cards than allowed
+this.checkHandTooBig = function (game) {
+  const excessCards = this.hand.cards.length - game.maxHandCards;
+  if (excessCards > 0) {
+    this.socket.emit("forceDiscard", excessCards);
+  }
+};
+
+this.addCardToProp = function (card, game) {
+  colour = card.card.colour;
+  var colourPresent = false;
+  for (let i = 0; i < this.property.length; i++) {
+    if (colour === this.property[i].colour) {
+      colourPresent = true;
+      this.property[i].cards.push(card);
+      break;
+    }
+  }
+  if (!colourPresent) {
+    this.property.push(new Street(card, game));
+  }
+};

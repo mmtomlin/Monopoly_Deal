@@ -28,7 +28,7 @@ io.on("connection", function (socket) {
 
   // Initialise player, send waiting status
   socket.on("name", function (data) {
-    game.addPlayer(socket.id, data.name);
+    game.addPlayer(socket, data.name);
     console.log("Added player: " + data.name);
   });
 
@@ -45,10 +45,21 @@ io.on("connection", function (socket) {
     });
   });
 
+  // if player plays cards during turn
   socket.on("move", function (data) {
     var player = game.getPlayerByID(socket.id);
     if (player.movesRemaining > 0) {
       player.playHandCard(data.id, game, data.options);
     }
+  });
+
+  // if player moves property cards / money during turn
+  socket.on("rearrange", function (data) {
+    //TODO
+  });
+
+  // accept money 
+  socket.on("accept", function (data) {
+
   });
 });
