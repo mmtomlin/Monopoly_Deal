@@ -37,56 +37,56 @@ exports.CARDS = {
       colour: "dblue",
       numberof: 2,
       value: 4,
-      name: "prop-dblue-"
+      name: "prop-dblue-",
     },
     {
       colour: "green",
       numberof: 3,
       value: 4,
-      name: "prop-green-"
+      name: "prop-green-",
     },
     {
       colour: "lblue",
       numberof: 3,
       value: 1,
-      name: "prop-lblue-"
+      name: "prop-lblue-",
     },
     {
       colour: "orange",
       numberof: 3,
       value: 2,
-      name: "prop-orange-"
+      name: "prop-orange-",
     },
     {
       colour: "purple",
       numberof: 3,
       value: 2,
-      name: "prop-purple-"
+      name: "prop-purple-",
     },
     {
       colour: "rail",
       numberof: 4,
       value: 2,
-      name: "prop-rail-"
+      name: "prop-rail-",
     },
     {
       colour: "red",
       numberof: 3,
       value: 3,
-      name: "prop-red-"
+      name: "prop-red-",
     },
     {
       colour: "utility",
       numberof: 2,
       value: 2,
-      name: "prop-utility-"
+      name: "prop-utility-",
     },
     {
       colour: "yellow",
       numberof: 3,
       value: 3,
-      name: "prop-yellow-"
-    }
+      name: "prop-yellow-",
+    },
   ],
   propWC: [
     // Wildcards
@@ -95,130 +95,148 @@ exports.CARDS = {
       numberof: 1,
       value: 4,
       reverseColour: "green",
-      name: "prop-wc-dblue-green"
+      name: "prop-wc-dblue-green",
     },
     {
       colour: "lblue",
       numberof: 1,
       value: 1,
       reverseColour: "brown",
-      name: "prop-wc-lblue-brown"
+      name: "prop-wc-lblue-brown",
     },
     {
       colour: "orange",
       numberof: 1,
       value: 2,
       reverseColour: "purple",
-      name: "prop-wc-orange-purple"
+      name: "prop-wc-orange-purple",
     },
     {
       colour: "green",
       numberof: 1,
       value: 4,
       reverseColour: "rail",
-      name: "prop-wc-green-rail"
+      name: "prop-wc-green-rail",
     },
     {
       colour: "lblue",
       numberof: 1,
       value: 4,
       reverseColour: "rail",
-      name: "prop-wc-lblue-rail"
+      name: "prop-wc-lblue-rail",
     },
     {
       colour: "utility",
       numberof: 1,
       value: 4,
       reverseColour: "rail",
-      name: "prop-wc-utility-rail"
+      name: "prop-wc-utility-rail",
     },
     {
       colour: "yellow",
       numberof: 1,
       value: 3,
       reverseColour: "red",
-      name: "prop-wc-yellow-red"
-    }
+      name: "prop-wc-yellow-red",
+    },
+  ],
+  propB: [
+    {
+      colour: "any",
+      name: "house",
+      value: 4,
+      numberof: 3,
+      rent: 4,
+    },
+    {
+      colour: "any",
+      name: "hotel",
+      value: 3,
+      numberof: 3,
+      rent: 4,
+    },
   ],
   propAny: [
     {
+      colour: "any",
       numberof: 2,
       value: 0,
-      name: "prop-any"
-    }
+      name: "prop-any",
+    },
   ],
   cash: [
     {
       value: 10,
       numberof: 1,
-      name: "money-10"
+      name: "money-10",
     },
     {
       value: 5,
       numerof: 2,
-      name: "money-5"
+      name: "money-5",
     },
     {
       value: 4,
       numberof: 3,
-      name: "money-4"
+      name: "money-4",
     },
     {
       value: 3,
       numberof: 3,
-      name: "money-3"
+      name: "money-3",
     },
     {
       value: 2,
       numberof: 5,
-      name: "money-2"
+      name: "money-2",
     },
     {
       value: 1,
       numberof: 6,
-      name: "money-1"
-    }
-  ],
-  rentAny: [
-    {
-      value: 3,
-      numberof: 3,
-      name: "rent-any"
-    }
+      name: "money-1",
+    },
   ],
   rent: [
     {
       rentColours: ["dblue", "green"],
       numberof: 2,
-      name: "rent-dblue-green"
+      name: "rent-dblue-green",
     },
     {
       rentColours: ["brown", "lblue"],
       numberof: 2,
-      rent: "rent-brown-lblue"
+      rent: "rent-brown-lblue",
     },
     {
       rentColours: ["purple", "orange"],
       numberof: 2,
-      name: "rent-purple-orange"
+      name: "rent-purple-orange",
     },
     {
       rentColours: ["rail", "utility"],
       numberof: 2,
-      name: "rent-rail-utility"
+      name: "rent-rail-utility",
     },
     {
       rentColours: ["red", "yellow"],
       numberof: 2,
-      name: "rent-red-yellow"
-    }
+      name: "rent-red-yellow",
+    },
+  ],
+  rentAny: [
+    {
+      power: rentAny,
+      value: 3,
+      numberof: 3,
+      name: "rent-any",
+    },
   ],
   power: [
     {
       name: "just-say-no",
       power: justSayNo,
       value: 4,
-      numberof: 3
+      numberof: 3,
     },
     {
       name: "deal-breaker",
@@ -261,18 +279,6 @@ exports.CARDS = {
       power: passGo,
       value: 1,
       numberof: 10,
-    }
-  ],
-  building: [
-    {
-      name: "house",
-      value: 4,
-      numberof: 3,
     },
-    {
-      name: "hotel",
-      value: 3,
-      numberof: 3,
-    }
-  ]
+  ],
 };

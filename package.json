@@ -2,7 +2,7 @@
   "name": "monopoly_deal",
   "version": "1.0.0",
   "description": "monopoly deal with node, express",
-  "main": "game.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
