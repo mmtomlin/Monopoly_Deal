@@ -1,45 +1,88 @@
 //card powers
 
+// all options have playAsCash = true/false as well as the following:
+//
 // options object = dealBreaker.streetID
-dealBreaker = function (game, player, options) {
-  const streetID = options.dealBreaker.streetID;
-  const victim = game.getPlayerByStreet(streetID);
-  player.property.push(victim.popStreetByID(streetID));
+dealBreaker = {
+  power: function (game, player, options) {
+    const streetID = options.dealBreaker.streetID;
+    const victim = game.getPlayerByStreet(streetID);
+    player.property.push(victim.popStreetByID(streetID));
+  },
+  request: function (game, player, options) {
+    const streetID = options.dealBreaker.streetID;
+    const victim = game.getPlayerByStreet(streetID);
+    victim.getConsent(game, player, "deal-breaker", options);
+  },
 };
 // options object = debtCollector.victim
-debtCollector = function (game, player, options) {
-  const victimRelPos = options.debtCollector.victim;
-  const victim = game.getPlayerByRelPosition(player.position, victimRelPos);
-  const charge = 5;
-  player.chargeOther(charge, victim);
+debtCollector = {
+  power: function (game, player, options) {
+    const victimRelPos = options.debtCollector.victim;
+    const victim = game.getPlayerByRelPosition(player.position, victimRelPos);
+    const charge = 5;
+    player.chargeOther(charge, victim);
+  },
+  request: function (game, player, options) {
+    const victimRelPos = options.debtCollector.victim;
+    const victim = game.getPlayerByRelPosition(player.position, victimRelPos);
+    victim.getConsent(game, player, "debt-collector", options);
+  },
 };
-// no options
-doubleTheRent = function (game, player, options) {
-  player.rentMultiplier = 2;
+//
+doubleTheRent = {
+  power: function (game, player, options) {
+    player.rentMultiplier = 2;
+  },
 };
 // options object = { forcedDeal.targetCardID, forcedDeal.swapCardID }
-forcedDeal = function (game, player, options) {
-  const targetCard = options.forcedDeal.targetCardID;
-  const swapCard = options.forcedDeal.swapCardID;
-  const victim = game.getPlayerByCardID(options);
-  player.addCardToProp(victim.popPropCardByID(targetCard));
-  victim.addCardToProp(player.popPropCardByID(swapCard));
+forcedDeal = {
+  power: function (game, player, options) {
+    const targetCard = options.forcedDeal.targetCardID;
+    const swapCard = options.forcedDeal.swapCardID;
+    const victim = game.getPlayerByCardID(options);
+    player.addCardToProp(victim.popPropCardByID(targetCard));
+    victim.addCardToProp(player.popPropCardByID(swapCard));
+  },
+  request: function (game, player, options) {
+    const victim = game.getPlayerByCardID(options);
+    victim.getConsent(game, player, "forced-deal", options);
+  },
 };
-// no options
-itsMyBirthday = function (game, player, options) {
-  const charge = 2;
-  player.chargeOthers(charge, game);
+//
+itsMyBirthday = {
+  power: function (game, player, options) {
+    const charge = 2;
+    player.chargeOthers(charge, game);
+  },
 };
 // options object = { slyDeal.targetCardID }
-slyDeal = function (game, player, options) {
-  const targetCard = options.forcedDeal.targetCardID;
-  const victim = game.getPlayerByCardID(options);
-  player.addCardToProp(victim.popPropCardByID(targetCard));
+slyDeal = {
+  power: function (game, player, options) {
+    const targetCard = options.forcedDeal.targetCardID;
+    const victim = game.getPlayerByCardID(options);
+    player.addCardToProp(victim.popPropCardByID(targetCard));
+  },
+  request: function (game, player, options) {
+    const victim = game.getPlayerByCardID(options);
+    victim.getConsent(game, player, "sly-deal", options);
+  },
 };
-// no options
-passGo = function (game, player, options) {
-  player.drawCards(game.deck, game.cardsPerTurn);
+//
+passGo = {
+  power: function (game, player, options) {
+    player.drawCards(game.deck, game.cardsPerTurn);
+  },
 };
+// options object = { rentAny.colour, rentAny.victim }
+rentAny = {
+  power: function (game, player, options) {
+    const victimRelPos = options.debtCollector.victim;
+    const victim = game.getPlayerByRelPosition(player.position, victimRelPos);
+    const charge = player.getRentAmountByColour(options.rentAny.colour);
+    player.chargeOther(charge, victim);
+  },
+}
 
 exports.CARDS = {
   prop: [

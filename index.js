@@ -47,19 +47,49 @@ io.on("connection", function (socket) {
 
   // if player plays cards during turn
   socket.on("move", function (data) {
-    var player = game.getPlayerByID(socket.id);
+    let player = game.getPlayerByID(socket.id);
     if (player.movesRemaining > 0) {
       player.playHandCard(data.id, game, data.options);
     }
   });
 
   // if player moves property cards / money during turn
-  socket.on("rearrange", function (data) {
+  socket.on("rearrangeProp", function (data) {
     //TODO
   });
+  socket.on("rearrangeMoney", function (data) {
+    //TODO
+  })
 
-  // accept money 
+  // accept power 
   socket.on("accept", function (data) {
-
+    let player = game.getPlayerByID(socket.id);
+    let owedPlayer = game.players[game.currentPlayer];
+    if (data === "playJustSayNo" && player.hasJustSayNo) {
+      game.discarded.push(player.popJustSayNo());
+    } else {
+      let resp = owedPlayer.waitResponse.power;
+      resp.power(resp.opts.game,resp.opts.player,resp.)
+    }
   });
+
+  // discard cards (if more than 7), data.id = discarded card id
+  socket.on("discard", function (data) {
+    let player = game.getPlayerByID(socket.id)
+  });
+
+  // data.id = money card id
+  socket.on("pay", function (data) {
+    let player = game.getPlayerByID(socket.id);
+    let owedPlayer = game.players[game.currentPlayer];
+    let card = player.popCardById(data.id);
+    player.moneyOwes -= card.card.value;
+    owedPlayer.takeCard(card);
+    if (player.moneyOwes > 0) {
+      socket.emit("payRequest", player.moneyOwes);
+    }
+    if (game.allDebtsPaid) {
+      owedPlayer.finishMove();
+    }
+  })
 });

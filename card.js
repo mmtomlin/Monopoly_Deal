@@ -3,7 +3,7 @@ module.exports = Card;
 // Card prototype
 function Card(cardType, creatorObject, id) {
   this.card = creatorObject;
-  this.card.id = id;
+  this.id = id;
   this.cardType = cardType;
 
   if (this.cardType === "rent") {
@@ -22,24 +22,6 @@ function Card(cardType, creatorObject, id) {
       var l = this.reverse;
       this.reverse = this.colour;
       this.colour = l;
-    }
-  };
-
-  // not yet used
-  this.isrent = function () {
-    if (this.cardType === "rent") {
-      return true;
-    } else {
-      return false;
-    }
-  };
-
-  // not yet used
-  this.hasValue = function () {
-    if (typeof this.card.value === "number") {
-      return true;
-    } else {
-      return false;
     }
   };
 }

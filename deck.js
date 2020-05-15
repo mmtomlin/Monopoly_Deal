@@ -46,12 +46,10 @@ function Deck() {
   // returns drawn card,
   // if deck is empty flips over discard pile
   this.drawCard = function () {
-    if (this.cards.length > 0) {
-      return this.cards.pop()
-    } else {
+    if (this.cards.length < 1) {
       this.cards = this.discarded;
       this.discarded = [];
-      return this.cards.pop()
     }
+    return this.cards.pop()
   }
 }

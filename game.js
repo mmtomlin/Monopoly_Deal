@@ -35,6 +35,17 @@ Game = function () {
     this.players[0].startTurn()
   };
 
+  // self explanatory
+  this.allDebtsPaid = function () {
+    for (let p = 0; p < this.players.length; p++) {
+      const player = this.players[p];
+      if (player.moneyOwed > 0) {
+        return false;
+      }
+    } 
+    return true;
+  };
+
   // start next player turn
   this.continue = function () {
     this.incrPlayer()
