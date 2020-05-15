@@ -21,15 +21,15 @@ app.get("/", function (req, res) {
 });
 
 
-// Socket setup
+// Sockets
 var io = socketio(server);
 io.on("connection", function (socket) {
   console.log("made socket connection", socket.id);
 
   // Initialise player, send waiting status
-  socket.on("name", function (data) {
-    game.addPlayer(socket, data.name);
-    console.log("Added player: " + data.name);
+  socket.on("name", function (name) {
+    game.addPlayer(socket, name);
+    console.log("Added player: " + name);
   });
 
   // Check if players are ready, if they are, start game

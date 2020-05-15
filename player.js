@@ -16,12 +16,18 @@ function Player(socket, name, position) {
   this.position = position;
   this.movesRemaining = 0;
   this.rentMultiplier = 1;
+  // if waiting for cash, etc.:
+  this.waitAccept = false;
 
   // player turn:
   this.startTurn = function (game) {
     this.drawCards(game.deck, 2);
     this.movesRemaining = 3;
-    this.socket.emit("move", {
+    this.continueTurn(game);
+  }
+
+  this.continueTurn = function (game) {
+    this.socket.emit("moveRequest", {
       movesRemaining: this.movesRemaining,
     });
   };
@@ -87,6 +93,7 @@ function Player(socket, name, position) {
   };
 
   // self-explanatory
+  // TODO - return error on invalid id
   this.popHandCardById = function (id) {
     for (let c = 0; c < this.hand.length; c++) {
       if (this.hand[c].id === id) {
@@ -95,12 +102,14 @@ function Player(socket, name, position) {
     }
   };
 
+  // TODO - return error on invalid id
   this.popPropCardById = function (id) {
     for (let s = 0; s < this.property.length; s++) {
-      for (let c = 0; c < this.property[s].length; c++) {
-        const card = this.property[s][c].card;
-        if (card.id == id) {
-          return card; 
+      const street = this.property[s];
+      for (let c = 0; c < street.length; c++) {
+        const card = street[c];
+        if (street[c].id == id) {
+          return street.splice(c,1);
         }
       }
     }
@@ -132,78 +141,90 @@ function Player(socket, name, position) {
     for (let p = 0; p < game.players.length; p++) {
       const player = game.players[p];
       if (player.id !== this.id) {
-        player.giveMoney(amount, this)
+        player.giveMoney(amount, this);
       }
     }
   };
 
   this.chargeOther = function (amount, player) {
-    player.giveMoney(amount, this)
+    player.giveMoney(amount, this);
   };
 
   this.giveMoney = function (amount, player) {
-    this.moneyOwed = amount;
+    this.moneyOwes += amount;
     this.socket.emit("pay", amount);
-  }
+  };
 
-  // deals with a card picked by player as part of move
-  // id is card id from client
   this.playHandCard = function (id, game, options = null) {
-    // TODO
-    // need to organise this better
-    // need to create mechanism to start next turn etc. decrement moveRemaining
-    // wait for money, or accept steal etc.
-    // need to discard card
-    for (let c = 0; c < this.cards.length; c++) {
-      const card = this.cards[c];
-      // double checks if card exists in hand
-      if (card.id === id) {
-        this.movesRemaining--;
-        // if card is cash, add to cash
-        if (card.cardType === "cash" || card.cardType === "justSayNo") {
-          this.money.push(this.popHandCardById(id));
-          // if card is prop / propAny / propWC, add to property
-        } else if (card.cardType.slice(0, 4) === "prop") {
-          this.addCardToProp(this.popHandCardById(id), game);
-          // else the card needs options as it has more than one use
-          // if options are defined:
-        } else if (options !== null) {
-          // trigger card power
-          card.card.power(this, game, options);
-          // else we need to get options from user:
-        } else {
-          card.getOptions(this);
-          this.movesRemaining++;
-          break;
+    // get card
+    let card = this.popHandCardById(id);
+    this.movesRemaining--;
+    // if card is cash, add to cash
+    if (card.cardType === "cash" || card.cardType === "justSayNo") {
+      this.money.push(card);
+      // if card is prop / propAny / propWC, add to property
+    } else if (card.cardType.slice(0, 4) === "prop") {
+      this.addCardToProp(card);
+      // else the card needs options as it has more than one use
+      // if options are defined:
+    } else if (options !== null) {
+      // trigger card power
+      card.card.power(this, game, options);
+      // else we need to get options from user:
+    } else {
+      // not sure if this is needed, depends on how client is implemented
+      this.movesRemaining++;
+      this.hand.push(card);
+      this.socket.emit('getOptions', card.Type)
+      return;
+    }
+    // adds card to discard
+    game.deck.discarded.push(card);
+    // as long as player is not waiting for inputs:
+    if (!this.waitAccept) {
+      // if no moves left - end of turn
+      if (this.movesRemaining === 0) {
+        if (!this.checkHandTooBig()) {
+          game.continue()
         }
+      } else {
+        this.continueTurn(game);
       }
     }
   };
-}
 
-this.hasJustSayNo = function () {
-  //TODO
-};
-
-// checks if hand has more cards than allowed
-this.checkHandTooBig = function (game) {
-  const excessCards = this.hand.cards.length - game.maxHandCards;
-  if (excessCards > 0) {
-    this.socket.emit("forceDiscard", excessCards);
-  }
-};
-
-this.addCardToProp = function (card, game) {
-  colour = card.card.colour;
-  var colourPresent = false;
-  for (let i = 0; i < this.property.length; i++) {
-    if (colour === this.property[i].colour) {
-      colourPresent = true;
-      this.property[i].cards.push(card);
-      break;
+  this.hasJustSayNo = function () {
+    for (let c = 0; c < this.hand.length; c++) {
+      if (this.hand[c].cardType === "justSayNo") {
+        return true;
+      }      
     }
-  }
-  if (!colourPresent) {
-    this.property.push(new Street(card, game));
-  }
-};
+    return false;
+  };
+
+  // checks if hand has more cards than allowed
+  this.checkHandTooBig = function (game) {
+    const excessCards = this.hand.cards.length - game.maxHandCards;
+    if (excessCards > 0) {
+      this.socket.emit("forceDiscard", excessCards);
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  this.addCardToProp = function (card, game) {
+    colour = card.card.colour;
+    var colourPresent = false;
+    for (let i = 0; i < this.property.length; i++) {
+      if (colour === this.property[i].colour) {
+        colourPresent = true;
+        this.property[i].cards.push(card);
+        break;
+      }
+    }
+    if (!colourPresent) {
+      this.property.push(new Street(card, game));
+    }
+  };
+}

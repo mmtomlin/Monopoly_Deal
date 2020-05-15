@@ -14,11 +14,6 @@ function Card(cardType, creatorObject, id) {
     var rentAmount = player.getRentAmountByColour(options.colourPlayed) * player.rentMultiplier;
     player.chargeOthers(rentAmount);
     player.rentMultiplier = 1;
-    player.waitForMoney();
-  }
-
-  this.getOptions = function (card, player, game) {
-    
   }
 
   // function to change colour of prop wildcards
