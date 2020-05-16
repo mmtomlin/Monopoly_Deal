@@ -1,87 +1,51 @@
 //card powers
 
-// all options have playAsCash = true/false as well as the following:
-//
-// options object = dealBreaker.streetID
-dealBreaker = {
-  power: function (game, player, options) {
+// options object = {playAsCash: (true/false), victim: (victim position), dealBreaker.streetID: (street id)}
+dealBreaker = function (game, player, options) {
     const streetID = options.dealBreaker.streetID;
     const victim = game.getPlayerByStreet(streetID);
     player.property.push(victim.popStreetByID(streetID));
-  },
-  request: function (game, player, options) {
-    const streetID = options.dealBreaker.streetID;
-    const victim = game.getPlayerByStreet(streetID);
-    victim.getConsent(game, player, "deal-breaker", options);
-  },
 };
-// options object = debtCollector.victim
-debtCollector = {
-  power: function (game, player, options) {
-    const victimRelPos = options.debtCollector.victim;
+// options object = {playAsCash: (true/false), victim: (victim position) }
+debtCollector = function (game, player, options) {
+    const victimRelPos = options.victim;
     const victim = game.getPlayerByRelPosition(player.position, victimRelPos);
     const charge = 5;
     player.chargeOther(charge, victim);
-  },
-  request: function (game, player, options) {
-    const victimRelPos = options.debtCollector.victim;
-    const victim = game.getPlayerByRelPosition(player.position, victimRelPos);
-    victim.getConsent(game, player, "debt-collector", options);
-  },
 };
-//
-doubleTheRent = {
-  power: function (game, player, options) {
+// options object = {playAsCash: (true/false)}
+doubleTheRent = function (game, player, options) {
     player.rentMultiplier = 2;
-  },
 };
-// options object = { forcedDeal.targetCardID, forcedDeal.swapCardID }
-forcedDeal = {
-  power: function (game, player, options) {
+// options object = {playAsCash: (true/false), victim: (victim position), forcedDeal.targetCardID, forcedDeal.swapCardID } 
+forcedDeal = function (game, player, options) {
     const targetCard = options.forcedDeal.targetCardID;
     const swapCard = options.forcedDeal.swapCardID;
     const victim = game.getPlayerByCardID(options);
     player.addCardToProp(victim.popPropCardByID(targetCard));
     victim.addCardToProp(player.popPropCardByID(swapCard));
-  },
-  request: function (game, player, options) {
-    const victim = game.getPlayerByCardID(options);
-    victim.getConsent(game, player, "forced-deal", options);
-  },
 };
-//
-itsMyBirthday = {
-  power: function (game, player, options) {
+// options object = {playAsCash: (true/false) }
+itsMyBirthday = function (game, player, options) {
     const charge = 2;
     player.chargeOthers(charge, game);
-  },
 };
-// options object = { slyDeal.targetCardID }
-slyDeal = {
-  power: function (game, player, options) {
+// options object = {playAsCash: (true/false), victim: (victim position), slyDeal.targetCardID}
+slyDeal = function (game, player, options) {
     const targetCard = options.forcedDeal.targetCardID;
     const victim = game.getPlayerByCardID(options);
     player.addCardToProp(victim.popPropCardByID(targetCard));
-  },
-  request: function (game, player, options) {
-    const victim = game.getPlayerByCardID(options);
-    victim.getConsent(game, player, "sly-deal", options);
-  },
 };
-//
-passGo = {
-  power: function (game, player, options) {
+// options object = {playAsCash: (true/false) }
+passGo = function (game, player, options) {
     player.drawCards(game.deck, game.cardsPerTurn);
-  },
 };
-// options object = { rentAny.colour, rentAny.victim }
-rentAny = {
-  power: function (game, player, options) {
-    const victimRelPos = options.debtCollector.victim;
+// options object = {playAsCash: (true/false), victim: (victim position), rentAny.colour: (colour) }
+rentAny = function (game, player, options) {
+    const victimRelPos = options.victim;
     const victim = game.getPlayerByRelPosition(player.position, victimRelPos);
     const charge = player.getRentAmountByColour(options.rentAny.colour);
     player.chargeOther(charge, victim);
-  },
 }
 
 exports.CARDS = {
@@ -288,6 +252,7 @@ exports.CARDS = {
       name: "just-say-no",
       value: 4,
       numberof: 3,
+      confirm: true,
     },
   ],
   rentAny: [
@@ -296,6 +261,7 @@ exports.CARDS = {
       value: 3,
       numberof: 3,
       name: "rent-any",
+      confirm: true,
     },
   ],
   power: [
@@ -304,42 +270,49 @@ exports.CARDS = {
       power: dealBreaker,
       value: 5,
       numberof: 2,
+      confirm: true,
     },
     {
       name: "debt-collector",
       power: debtCollector,
       value: 3,
       numberof: 3,
+      confirm: false,
     },
     {
       name: "double-the-rent",
       power: doubleTheRent,
       value: 1,
       numberof: 1,
+      confirm: false,
     },
     {
       name: "forced-deal",
       power: forcedDeal,
       value: 3,
       numberof: 3,
+      confirm: true,
     },
     {
       name: "its-my-birthday",
       power: itsMyBirthday,
       value: 2,
       numberof: 3,
+      confirm: false,
     },
     {
       name: "sly-deal",
       power: slyDeal,
       value: 3,
       numberof: 3,
+      confirm: true,
     },
     {
       name: "pass-go",
       power: passGo,
       value: 1,
       numberof: 10,
+      confirm: false,
     },
   ],
 };

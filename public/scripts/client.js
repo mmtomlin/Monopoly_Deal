@@ -27,17 +27,17 @@ function updateProperty(user, data) {
 // updates money, handcards
 // for user money, data = list of cards
 // for other player, data.moneyTopCard, data.handCardCound, data.moneyCardCount
-function updateMoney(user, data) {
+function updateMoney(player, data) {
   // empty money container
-  $(".money-container.player" + user).empty();
+  $(".money-container.player" + player).empty();
   // TODO : PLAYER HAND CONTAINER
-  console.log(user);
-  if (user === 0) {
+  console.log(player);
+  if (player === 0) {
     // for user
     for (let c = 0; c < data.length; c++) {
       const card = data[c];
       console.log("appending user money");
-      $(".money-container.player" + user).append(
+      $(".money-container.player" + player).append(
         "<div class=money-parent><div id='" +
           card.id +
           "' class='mcard " +
@@ -47,16 +47,18 @@ function updateMoney(user, data) {
     }
   } else {
     // for other players
-    for (let c = 0; c < data.moneyCardCount; c++) {
-      $(".money-container.player" + user).append(
+    for (let c = 0; c < data.moneyCardCount - 1; c++) {
+      $(".money-container.player" + player).append(
         "<div class=money-parent><div class='mcard'></div></div>"
       );
     }
-    $(".money-container.player" + user).append(
-      "<div class=money-parent><div class='mcard " +
-        data.moneyTopCard.name +
-        "'></div></div>"
-    );
+    if (data.moneyCardCount > 0) {
+      $(".money-container.player" + player).append(
+        "<div class=money-parent><div class='mcard " +
+          data.moneyTopCard.name +
+          "'></div></div>"
+      );
+    }
     // TODO - UPDATE PLAYER HANDS
   }
 }
@@ -94,7 +96,7 @@ function updateHand(data) {
   for (let c = 0; c < data.length; c++) {
     const card = data[c];
     $("#player-hand-container").append(
-      "<div id='" + card.id + "' class='mcard " + card.name + "'></div>"
+      "<div id='" + card.id + "' class='mcard hand-card " + card.name + "'></div>"
     );
   }
 }
@@ -103,11 +105,12 @@ function updateHand(data) {
 // data.players[p].(name/ready)
 function updateLobby(data) {
   $("#lobby-list").empty();
-  for (let i = 0; i < data.length; i++) {
+  for (let i = 0; i < data.players.length; i++) {
     const player = data.players[i];
-    var ready = "waiting";
-    if ((player.ready = true)) {
-      ready = "ready";
+    if (player.ready) {
+      var ready = "ready";
+    } else {
+      var ready = "waiting";
     }
     $("#lobby-list").append("<li> " + player.name + " : " + ready + " </li>");
   }
@@ -117,14 +120,14 @@ function updateLobby(data) {
 var socket = io.connect("http://localhost:4000");
 
 /*
-      EMITS
+      DOM EVENTS
 */
 
 // Login:
 var loginNameInput = $("#name");
 var loginBtn = $("#login-button");
 loginBtn.on("click", function () {
-  socket.emit("name", { name: loginNameInput.value });
+  socket.emit("name", { name: loginNameInput.val() });
   $(".outer-container.login").css("display", "none");
   $(".outer-container.lobby").css("display", "inline-block");
 });
@@ -145,11 +148,14 @@ socket.on("connection", function () {
 // game started message from server
 socket.on("gameStatus", function (data) {
   console.log("received game status");
+  console.log(data)
   if (data.gameStarted === true) {
+    console.log("game is starting");
     $(".outer-container.lobby").css("display", "none");
     $(".outer-container.game").css("display", "inline-block");
   } else {
-    updateLobby(data.players);
+    console.log("updating lobby");
+    updateLobby(data);
   }
 });
 
@@ -167,30 +173,37 @@ socket.on("gameData", function (gameData) {
 });
 
 // move request
-socket.on("move", function (data) {
+socket.on("moveRequest", function (data) {
   console.log("move : " + data);
   alert("Please select a card you have " + data.movesRemaining + " moves left");
-  var handCards = $("#player-hand-container>.mcard");
-  for (let i = 0; i < handCards.length; i++) {
-    const card = handCards[i];
-    card.on("click", function () {
-      socket.emit("choice", { card: card.attr("id") });
-    });
-  }
+  $("#player-hand-container>.mcard").click(function () {
+    $("#player-hand-container>.mcard").unbind();
+    const cardID = $('this').attr('id');
+    socket.emit("move", { id: cardID })
+  })
 });
 
+socket.on("getOptions", function (data) {
+  // TODO
+});
+
+socket.on("payRequest", function (data) {
+});
 
 // request to discard cards if too many in hand
 socket.on("forceDiscard", function (data) {
+  // TODO
   console.log("foredDiscard : " + data);
 });
 
 // request to accept steal from another player (or play JSN)
 socket.on("steal", function (data) {
+  // TODO
   console.log("steal : " + data);
 });
 
 // request to pay another player
-socket.on("giveCash", function () {
+socket.on("giveCash", function (data) {
+  // TODO
   console.log("giveCash : " + data);
 });

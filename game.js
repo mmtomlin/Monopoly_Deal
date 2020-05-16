@@ -1,13 +1,13 @@
 const cards = require(__dirname + "/cards.js");
 const Deck = require(__dirname + "/deck.js")
 const Player = require(__dirname + "/player.js")
+const shuffle = require(__dirname + "/shuffle.js")
 
 /*
 GAME HEIRARCHY = GAME > ROUND > TURN > MOVE
 */
 
 
-module.exports = Game;
 
 // Game prototype
 Game = function () {
@@ -20,19 +20,20 @@ Game = function () {
     this.players = shuffle(this.players);
     this.deck = new Deck();
     this.deck.cards = shuffle(this.deck.cards);
+    this.gameStarted = true;
 
     const startCards = 5;
     this.cardsPerTurn = 2;
     this.maxHandCards = 7;
 
-    for (let p = 0; p < players.length; p++) {
+    for (let p = 0; p < this.players.length; p++) {
       // lets each player know position
       this.players[p].position = p;
       // Draws 5 (numberOfStartingCards) cards:
       this.players[p].drawCards(this.deck, startCards);
       this.players[p].sendAllGameData(this);
     }
-    this.players[0].startTurn()
+    this.players[0].startTurn(this)
   };
 
   // self explanatory
@@ -49,7 +50,7 @@ Game = function () {
   // start next player turn
   this.continue = function () {
     this.incrPlayer()
-    this.players[this.currentPlayer].startTurn()
+    this.players[this.currentPlayer].startTurn(this)
   }
 
   // adding a player:
@@ -84,6 +85,14 @@ Game = function () {
     }
   }
 
+  this.getPlayerBySocket = function (socketID) {
+    for (let p = 0; p < this.players.length; p++) {
+      if (socketID === this.players[p].id) {
+        return this.players[p];        
+      }      
+    }
+  }
+
   // gets deck public data
   this.getDeckPublicData = function () {
     var discardedCount = this.deck.discarded.length;
@@ -103,7 +112,7 @@ Game = function () {
   this.getLobbyData = function () {
     var lobby = [];
     for (let p = 0; p < this.players.length; p++) {
-      const player = this.player[p];
+      const player = this.players[p];
       lobby.push({ name: player.name, ready: player.isReady });
     }
     return lobby;
@@ -139,4 +148,12 @@ Game = function () {
   this.kickPlayer = function (socketID) {
     //TODO
   }
+
+  this.updateAllClients = function() {
+    for (let p = 0; p < this.players.length; p++) {
+      this.players[p].sendAllGameData(this);
+    }
+  }
 };
+
+module.exports = Game;

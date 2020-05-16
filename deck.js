@@ -1,7 +1,7 @@
 const Card = require(__dirname + "/card.js")
+const cards = require(__dirname + "/cards.js")
 
 
-module.exports = Deck;
 
 // Deck prototype
 function Deck() {
@@ -53,3 +53,5 @@ function Deck() {
     return this.cards.pop()
   }
 }
+
+module.exports = Deck;

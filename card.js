@@ -1,4 +1,3 @@
-module.exports = Card;
 
 // Card prototype
 function Card(cardType, creatorObject, id) {
@@ -7,7 +6,8 @@ function Card(cardType, creatorObject, id) {
   this.cardType = cardType;
 
   if (this.cardType === "rent") {
-    this.card.power = getRent;
+    this.card.power = {}
+    this.card.power.power = getRent;
   }
 
   getRent = function (player, game, options) {
@@ -25,3 +25,5 @@ function Card(cardType, creatorObject, id) {
     }
   };
 }
+
+module.exports = Card;

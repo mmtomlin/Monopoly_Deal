@@ -2,8 +2,6 @@ const fs = require("fs");
 
 const Street = require(__dirname + "/street.js");
 
-module.exports = Player;
-
 // Player prototype
 function Player(socket, name, position) {
   this.name = name;
@@ -17,8 +15,8 @@ function Player(socket, name, position) {
   this.movesRemaining = 0;
   this.rentMultiplier = 1;
   this.moneyOwes = 0; // used if this player owes another money
-  this.waitAccept = false; // waiting for a response from other player(s)
-  this.waitResponse = null; // waiting for a response from this player
+  this.loadedPower = null; // loads power function to execute if target player accepts
+  this.waitResponse = false; // waiting for a response from this player
 
   /* 
       PLAYER TURN LOGIC:
@@ -41,7 +39,7 @@ function Player(socket, name, position) {
   //
   this.finishMove = function () {
     // as long as player is not waiting for inputs:
-    if (!this.waitAccept) {
+    if (!waitResponse) {
       // if no moves left - end of turn
       if (this.movesRemaining === 0) {
         if (!this.checkHandTooBig()) {
@@ -68,12 +66,25 @@ function Player(socket, name, position) {
       // else the card needs options as it has more than one use
       // if options are defined:
     } else if (options !== null) {
-      // trigger card power
-      if (card.card.power.request === "undefined") {
-        card.card.power.power(this, game, options);
+      // if player wants to play power as cash
+      if (options.playAsCash) {
+        this.money.push(card);
+        // if power does not require request function:
+      } else if (!card.card.confirm) {
+        card.card.power(this, game, options);
+        // if power requires confirmation from target player:
       } else {
-        card.card.power.request(this, game, options);
+        this.loadedPower = {
+          pwr: card.card.power,
+          opts: [this, game, options],
+        };
         this.waitAccept = true;
+        const victim = game.getPlayerByRelPosition(
+          this.position,
+          options.victim
+        );
+        victim.getConsent(card.name);
+        return;
       }
       // else we need to get options from user:
     } else {
@@ -157,7 +168,6 @@ function Player(socket, name, position) {
     player.giveMoney(amount, this);
   };
 
-
   /*
       MISC?
   */
@@ -208,8 +218,7 @@ function Player(socket, name, position) {
 
   // get consent before accepting steal etc. (gives opotunity for just say no)
   this.getConsent = function (game, player, card, options) {
-    this.waitResponse = {power: card.card.power.power, opts: [game, player, options]};
-    this.socket.emit("acceptRequest", { card: card.name, options: options });
+    this.socket.emit("acceptRequest", card.name);
   };
 
   // send all game data to client
@@ -218,7 +227,7 @@ function Player(socket, name, position) {
     var playerData = [];
     // inserts user player at position[0]
     playerData.push(this.getPrivateData());
-    var relPos = positionRelative(game.players.length, this.position);
+    var relPos = game.positionRelative(game.players.length, this.position);
     for (let i = 1; i < relPos.length; i++) {
       // i=1 to not include user player
       p = relPos[i];
@@ -232,12 +241,22 @@ function Player(socket, name, position) {
     // emits game data
     this.socket.emit("gameData", gameData);
     fs.writeFile(
-      "test_game_data.json",
+      "test_game_data" + this.id + ".json",
       JSON.stringify(gameData, null, 2),
       function () {
         console.log("JSON game data file written");
       }
     );
+  };
+
+  // checks if hand has more cards than allowed
+  this.checkHandTooBig = function (game) {
+    const excessCards = this.hand.length - game.maxHandCards;
+    if (excessCards > 0) {
+      this.socket.emit("forceDiscard", excessCards);
+    } else {
+      this.finishMove();
+    }
   };
 
   /* 
@@ -257,6 +276,7 @@ function Player(socket, name, position) {
 
   // get public data for this player
   this.getPublicData = function () {
+    
     return {
       name: this.name,
       property: this.property,
@@ -294,3 +314,5 @@ function Player(socket, name, position) {
     return rentAmount;
   };
 }
+
+module.exports = Player;

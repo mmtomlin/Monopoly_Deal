@@ -159,6 +159,11 @@ h3 {
   background-repeat: no-repeat;
 }
 
+.hand-card {
+  display: inline-block;
+  position: static;
+}
+
 .money-parent{
   width: 100px;
   height: 3px; 

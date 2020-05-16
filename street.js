@@ -1,4 +1,3 @@
-module.exports = Street;
 
 // Street prototype
 function Street(card, game) {
@@ -37,3 +36,5 @@ function Street(card, game) {
     }
   };
 }
+
+module.exports = Street;
