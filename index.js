@@ -100,7 +100,7 @@ io.on("connection", function (socket) {
     owedPlayer.takeCard(card);
     game.updateAllClients();
     if (player.moneyOwes > 0) {
-      socket.emit("payRequest", {  :player.moneyOwes });
+      socket.emit("payRequest", { amount :player.moneyOwes });
     }
     if (game.allDebtsPaid) {
       owedPlayer.finishMove();
