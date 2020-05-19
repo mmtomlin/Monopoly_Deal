@@ -7,8 +7,6 @@ const shuffle = require(__dirname + "/shuffle.js")
 GAME HEIRARCHY = GAME > ROUND > TURN > MOVE
 */
 
-
-
 // Game prototype
 Game = function () {
   this.players = [];
@@ -91,6 +89,7 @@ Game = function () {
         return this.players[p];        
       }      
     }
+    return "socket id does not match any player id"
   }
 
   // gets deck public data

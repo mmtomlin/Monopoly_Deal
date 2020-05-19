@@ -12,6 +12,8 @@ sendGameStatus = function (game) {
 };
 
 // Game start
+console.log("starting new game")
+console.log(new Date());
 game = new Game();
 
 // App setup
@@ -50,6 +52,7 @@ io.on("connection", function (socket) {
 
   // if player plays cards during turn
   socket.on("move", function (data) {
+    console.log(socket.id + " has sent " + data)
     let player = game.getPlayerBySocket(socket.id);
     if (player.movesRemaining > 0) {
       player.playHandCard(data.id, game, data.options);
@@ -97,7 +100,7 @@ io.on("connection", function (socket) {
     owedPlayer.takeCard(card);
     game.updateAllClients();
     if (player.moneyOwes > 0) {
-      socket.emit("payRequest", player.moneyOwes);
+      socket.emit("payRequest", {  :player.moneyOwes });
     }
     if (game.allDebtsPaid) {
       owedPlayer.finishMove();

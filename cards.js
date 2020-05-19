@@ -1,8 +1,8 @@
 //card powers
 
-// options object = {playAsCash: (true/false), victim: (victim position), dealBreaker.streetID: (street id)}
+// options object = {playAsCash: (true/false), victim: (victim position), streetID: (street id)}
 dealBreaker = function (game, player, options) {
-    const streetID = options.dealBreaker.streetID;
+    const streetID = options.streetID;
     const victim = game.getPlayerByStreet(streetID);
     player.property.push(victim.popStreetByID(streetID));
 };
@@ -17,10 +17,10 @@ debtCollector = function (game, player, options) {
 doubleTheRent = function (game, player, options) {
     player.rentMultiplier = 2;
 };
-// options object = {playAsCash: (true/false), victim: (victim position), forcedDeal.targetCardID, forcedDeal.swapCardID } 
+// options object = {playAsCash: (true/false), victim: (victim position), targetCardID, swapCardID } 
 forcedDeal = function (game, player, options) {
-    const targetCard = options.forcedDeal.targetCardID;
-    const swapCard = options.forcedDeal.swapCardID;
+    const targetCard = options.targetCardID;
+    const swapCard = options.swapCardID;
     const victim = game.getPlayerByCardID(options);
     player.addCardToProp(victim.popPropCardByID(targetCard));
     victim.addCardToProp(player.popPropCardByID(swapCard));
@@ -30,21 +30,21 @@ itsMyBirthday = function (game, player, options) {
     const charge = 2;
     player.chargeOthers(charge, game);
 };
-// options object = {playAsCash: (true/false), victim: (victim position), slyDeal.targetCardID}
+// options object = {playAsCash: (true/false), victim: (victim position), targetCardID}
 slyDeal = function (game, player, options) {
-    const targetCard = options.forcedDeal.targetCardID;
-    const victim = game.getPlayerByCardID(options);
+    const targetCard = options.targetCardID;
+    const victim = game.getPlayerByCardID(options.victim);
     player.addCardToProp(victim.popPropCardByID(targetCard));
 };
 // options object = {playAsCash: (true/false) }
 passGo = function (game, player, options) {
     player.drawCards(game.deck, game.cardsPerTurn);
 };
-// options object = {playAsCash: (true/false), victim: (victim position), rentAny.colour: (colour) }
+// options object = {playAsCash: (true/false), victim: (victim position), colourPlayed: (colour) }
 rentAny = function (game, player, options) {
     const victimRelPos = options.victim;
     const victim = game.getPlayerByRelPosition(player.position, victimRelPos);
-    const charge = player.getRentAmountByColour(options.rentAny.colour);
+    const charge = player.getRentAmountByColour(options.colourPlayed);
     player.chargeOther(charge, victim);
 }
 

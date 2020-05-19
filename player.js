@@ -36,7 +36,7 @@ function Player(socket, name, position) {
     });
   };
 
-  //
+  // continue move, or start next players turn
   this.finishMove = function () {
     // as long as player is not waiting for inputs:
     if (!waitResponse) {
@@ -51,17 +51,19 @@ function Player(socket, name, position) {
     }
   };
 
-  //
+  // plays a card out of the players hand
   this.playHandCard = function (id, game, options = null) {
     // get card
     let card = this.popHandCardById(id);
-    game.deck.discarded.push(card);
+    console.log("card played: " + card.id);
     this.movesRemaining--;
     // if card is cash, add to cash
     if (card.cardType === "cash" || card.cardType === "justSayNo") {
+      console.log("cash card played");
       this.money.push(card);
       // if card is prop / propAny / propWC, add to property
     } else if (card.cardType.slice(0, 4) === "prop") {
+      console.log("prop card played");
       this.addCardToProp(card);
       // else the card needs options as it has more than one use
       // if options are defined:
@@ -83,15 +85,17 @@ function Player(socket, name, position) {
           this.position,
           options.victim
         );
-        victim.getConsent(card.name);
+        victim.getConsent(card);
         return;
       }
       // else we need to get options from user:
     } else {
+      console.log("options needed, sending options request to client")
       // requests options before finishing move:
       this.getOptions(card);
       return;
     }
+    game.updateAllClients();
     this.finishMove();
   };
 
@@ -209,16 +213,19 @@ function Player(socket, name, position) {
   //
   this.giveMoney = function (amount) {
     this.moneyOwes += amount;
-    this.socket.emit("payRequest", amount);
+    this.socket.emit("payRequest", { amount: amount });
   };
 
+  // 
   this.getOptions = function (card) {
-    this.socket.emit("getOptions", card.Type);
+    this.socket.emit("getOptions", { card: card });
   };
 
   // get consent before accepting steal etc. (gives opotunity for just say no)
-  this.getConsent = function (game, player, card, options) {
-    this.socket.emit("acceptRequest", card.name);
+  this.getConsent = function (card) {
+    let options = ["accept"];
+    if (this.hasJustSayNo) options.push("just say no");
+    this.socket.emit("acceptRequest", { name: card.name, options: options });
   };
 
   // send all game data to client
@@ -253,7 +260,7 @@ function Player(socket, name, position) {
   this.checkHandTooBig = function (game) {
     const excessCards = this.hand.length - game.maxHandCards;
     if (excessCards > 0) {
-      this.socket.emit("forceDiscard", excessCards);
+      this.socket.emit("forceDiscard", { excessCards: excessCards });
     } else {
       this.finishMove();
     }

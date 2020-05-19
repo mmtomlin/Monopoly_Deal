@@ -1,8 +1,6 @@
 const Card = require(__dirname + "/card.js")
 const cards = require(__dirname + "/cards.js")
 
-
-
 // Deck prototype
 function Deck() {
   this.cards = [];

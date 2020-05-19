@@ -71,8 +71,44 @@ h3 {
 }
 
 #options-container {
-  width: 600px;
-  height: 600px;
+  width: auto;
+  height: auto;
+  padding: 20px;
+  display: flex;
+  justify-items: center;
+  align-items: center;
+}
+
+#options-box {
+  display: flex;
+  size: auto;
+  flex-direction: column;  
+}
+
+#options-heading {
+  text-align: center;
+  font-size: 3rem;
+  margin: 20px;
+}
+
+#options-options {
+  display: flex;
+  flex-flow: row;
+  max-width: 800px;
+}
+
+.options-button {
+  height: 50px;
+  width: 150px;
+  border: solid 2px black;
+  background-color: rgb(223, 223, 223);
+  border-radius: 20px;
+  margin: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: "ITCKabelStd-Demi", "Cabin", sans-serif;
+  font-size: 1.8rem;
 }
 
 .jailman {
@@ -163,6 +199,15 @@ h3 {
   display: inline-block;
   position: static;
 }
+
+.hand-card-hover {
+  position: relative;
+  top: -60px;
+  width: 120px;
+  height: 192px; 
+  background-size: 118px, auto;
+}
+
 
 .money-parent{
   width: 100px;
