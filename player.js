@@ -26,26 +26,38 @@ function Player(socket, name, position) {
   this.startTurn = function (game) {
     this.drawCards(game.deck, 2);
     this.movesRemaining = 3;
+    game.updateAllClients();
     this.continueTurn(game);
   };
 
   //
   this.continueTurn = function (game) {
+    console.log("sending moveRequest");
     this.socket.emit("moveRequest", {
       movesRemaining: this.movesRemaining,
     });
   };
 
+  this.finishTurn = function (game) {
+    game.updateAllClients();
+    if (!this.waitResponse && game.allDebtsPaid()) {
+      if (!this.handTooBig(game)) {
+        game.continue();
+      }
+    } else {
+      this.socket.emit("moveRequest", {
+        movesRemaining: 0,
+      });
+    }
+  };
+
   // continue move, or start next players turn
-  this.finishMove = function () {
+  this.finishMove = function (game) {
+    game.updateAllClients();
     // as long as player is not waiting for inputs:
-    if (!waitResponse) {
+    if (!this.waitResponse && game.allDebtsPaid()) {
       // if no moves left - end of turn
-      if (this.movesRemaining === 0) {
-        if (!this.checkHandTooBig()) {
-          game.continue();
-        }
-      } else {
+      if (this.movesRemaining !== 0) {
         this.continueTurn(game);
       }
     }
@@ -54,49 +66,47 @@ function Player(socket, name, position) {
   // plays a card out of the players hand
   this.playHandCard = function (id, game, options = null) {
     // get card
-    let card = this.popHandCardById(id);
+    let card = this.popHandCardByID(id);
     console.log("card played: " + card.id);
     this.movesRemaining--;
     // if card is cash, add to cash
-    if (card.cardType === "cash" || card.cardType === "justSayNo") {
+    if (
+      card.cardType === "cash" ||
+      card.cardType === "justSayNo" ||
+      options.playAsCash === true
+    ) {
       console.log("cash card played");
       this.money.push(card);
-      // if card is prop / propAny / propWC, add to property
+      // if card is building, add to first full set
+    } else if (card.cardType === "propB") {
+      for (let s = 0; s < this.property.length; s++) {
+        let street = this.property[s];
+        if (street.isComplete()) {
+          street.cards.push(card);
+          this.finishMove(game);
+          return;
+        }
+      }
+      this.money.push(card);
+      // if card is prop / propAny / propWC but not propB, add to property
     } else if (card.cardType.slice(0, 4) === "prop") {
       console.log("prop card played");
-      this.addCardToProp(card);
-      // else the card needs options as it has more than one use
-      // if options are defined:
-    } else if (options !== null) {
-      // if player wants to play power as cash
-      if (options.playAsCash) {
-        this.money.push(card);
-        // if power does not require request function:
-      } else if (!card.card.confirm) {
-        card.card.power(this, game, options);
-        // if power requires confirmation from target player:
-      } else {
-        this.loadedPower = {
-          pwr: card.card.power,
-          opts: [this, game, options],
-        };
-        this.waitAccept = true;
-        const victim = game.getPlayerByRelPosition(
-          this.position,
-          options.victim
-        );
-        victim.getConsent(card);
-        return;
-      }
-      // else we need to get options from user:
+      this.addCardToProp(card, game);
+      // if power does not require request function:
+    } else if (!card.card.confirm) {
+      card.card.power(game, this, options);
+      // if power requires confirmation from target player:
     } else {
-      console.log("options needed, sending options request to client")
-      // requests options before finishing move:
-      this.getOptions(card);
+      this.loadedPower = {
+        pwr: card.card.power,
+        opts: [this, game, options],
+      };
+      this.waitResponse = true;
+      const victim = game.getPlayerByRelPos(this, options.victim);
+      victim.getConsent(card);
       return;
     }
-    game.updateAllClients();
-    this.finishMove();
+    this.finishMove(game);
   };
 
   /*
@@ -105,42 +115,49 @@ function Player(socket, name, position) {
 
   // self-explanatory
   // TODO - return error on invalid id
-  this.popHandCardById = function (id) {
+  this.popHandCardByID = function (id) {
     for (let c = 0; c < this.hand.length; c++) {
       if (this.hand[c].id === id) {
-        return this.hand.splice(c, 1);
+        return this.hand.splice(c, 1)[0];
       }
     }
+    throw "card not found: " + id;
   };
 
   // TODO - return error on invalid id
-  this.popPropCardById = function (id) {
+  this.popPropCardByID = function (id) {
     for (let s = 0; s < this.property.length; s++) {
       const street = this.property[s];
-      for (let c = 0; c < street.length; c++) {
-        const card = street[c];
-        if (street[c].id == id) {
-          return street.splice(c, 1);
+      for (let c = 0; c < street.cards.length; c++) {
+        const card = street.cards[c];
+        if (card.id == id) {
+          const card = street.cards.splice(c, 1)[0];
+          if (street.cards.length === 0) this.property.splice(s, 0);
+          return card;
         }
       }
     }
   };
 
-  this.popMoneyCardById = function (id) {
+  this.popMoneyCardByID = function (id) {
     for (let c = 0; c < this.money.length; c++) {
       if (this.money[c].id === id) {
-        return this.money.splice(c, 1);
+        return this.money.splice(c, 1)[0];
       }
     }
   };
 
-  this.popCardById = function (id) {
-    let card = this.popPropCardById(id);
-    if (card === "undefined") {
-      return this.popMoneyCardById(id);
-    } else {
-      return card;
+  this.popCardByID = function (id) {
+    let card = this.popPropCardByID(id);
+    if (typeof card === "undefined") {
+      card = this.popMoneyCardByID(id);
     }
+    if (typeof card === "undefined") {
+      console.log("cannot find card " + id);
+      console.log("property: " + JSON.stringify(this.property, null, 2));
+      console.log("money: " + JSON.stringify(this.money, null, 2));
+    }
+    return card;
   };
 
   this.reArrangeCash = function (game) {
@@ -157,19 +174,17 @@ function Player(socket, name, position) {
 
   // charges all other players a set amount
   this.chargeOthers = function (amount, game) {
-    this.waitAccept = true;
     for (let p = 0; p < game.players.length; p++) {
       const player = game.players[p];
       if (player.id !== this.id) {
-        player.giveMoney(amount, this);
+        player.giveMoney(amount, game);
       }
     }
   };
 
   // charges another player a set amount
   this.chargeOther = function (amount, player) {
-    this.waitAccept = true;
-    player.giveMoney(amount, this);
+    player.giveMoney(amount, game);
   };
 
   /*
@@ -177,15 +192,24 @@ function Player(socket, name, position) {
   */
 
   // put card into property / cash pile depending on type
-  this.takeCard = function (card) {
+  this.takeCard = function (card, game) {
     if (card.cardType.slice(0, 4) === "prop") {
-      this.addCardToProp(card);
+      this.addCardToProp(card, game);
     } else {
       this.money.push(card);
     }
   };
 
   this.addCardToProp = function (card, game) {
+    // if card is propAny add to first street
+    if (card.cardType === "propAny") {
+      if (this.property.length > 0) {
+        this.property[0].cards.push(card);
+      } else {
+        this.property.push(new Street(card, game));
+      }
+      return;
+    }
     colour = card.card.colour;
     var colourPresent = false;
     for (let i = 0; i < this.property.length; i++) {
@@ -211,13 +235,23 @@ function Player(socket, name, position) {
   */
 
   //
-  this.giveMoney = function (amount) {
-    this.moneyOwes += amount;
-    this.socket.emit("payRequest", { amount: amount });
+  this.giveMoney = function (amount, game) {
+    // if player has no cards to give:
+    if (this.property.length === 0 && this.money.length === 0) {
+      this.moneyOwes = 0;
+      if (game.allDebtsPaid()) {
+        game.players[game.currentPlayer].finishMove(game);
+      }
+    } else {
+      this.moneyOwes += amount;
+      console.log("sending payRequest");
+      this.socket.emit("payRequest", { amount: amount });
+    }
   };
 
-  // 
+  //
   this.getOptions = function (card) {
+    console.log("sending getOptions of " + card.id);
     this.socket.emit("getOptions", { card: card });
   };
 
@@ -225,6 +259,7 @@ function Player(socket, name, position) {
   this.getConsent = function (card) {
     let options = ["accept"];
     if (this.hasJustSayNo) options.push("just say no");
+    console.log("sending acceptRequest");
     this.socket.emit("acceptRequest", { name: card.name, options: options });
   };
 
@@ -248,21 +283,21 @@ function Player(socket, name, position) {
     // emits game data
     this.socket.emit("gameData", gameData);
     fs.writeFile(
-      "test_game_data" + this.id + ".json",
+      "debug/test_game_data" + this.id + ".json",
       JSON.stringify(gameData, null, 2),
-      function () {
-        console.log("JSON game data file written");
-      }
+      function () {}
     );
   };
 
   // checks if hand has more cards than allowed
-  this.checkHandTooBig = function (game) {
+  this.handTooBig = function (game) {
     const excessCards = this.hand.length - game.maxHandCards;
     if (excessCards > 0) {
+      console.log("sending forceDiscard");
       this.socket.emit("forceDiscard", { excessCards: excessCards });
+      return true;
     } else {
-      this.finishMove();
+      return false;
     }
   };
 
@@ -283,10 +318,14 @@ function Player(socket, name, position) {
 
   // get public data for this player
   this.getPublicData = function () {
-    
+    let property = this.property;
+    for (let s = 0; s < property.length; s++) {
+      let street = property[s];
+      street.complete = street.isComplete();
+    }
     return {
       name: this.name,
-      property: this.property,
+      property: property,
       // number of hand cards counted as "money" to make things easier
       money: {
         moneyTopCard: this.money[0],
@@ -313,7 +352,7 @@ function Player(socket, name, position) {
     for (let s = 0; s < this.property.length; s++) {
       if (this.property[s].colour === colour) {
         const rent = this.property[s].getRentAmount();
-        if (rent > rentamount) {
+        if (rent > rentAmount) {
           rentAmount = rent;
         }
       }

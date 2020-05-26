@@ -4,10 +4,16 @@
 
 // start move:
 function activateMove(remaining) {
-  console.log("move : " + data.movesRemaining);
-  alert("Please select a card you have " + data.movesRemaining + " moves left");
+  console.log("move : " + remaining);
+  const alertString = "Your turn, you have " + remaining + " moves remaining.";
+  $("#btn-end-turn").css("display", "inline-block");
+  $("#btn-end-turn").click(function () {
+    $("#btn-end-turn").css("display", "none");
+    socket.emit("endTurn");
+  })
+  if (remaining === 3) optAlert(alertString);
   // hover animation:
-  $("#player-hand-container>.mcard").hover(
+  $(".hand-card").hover(
     function () {
       $(this).addClass("hand-card-hover");
     },
@@ -16,36 +22,48 @@ function activateMove(remaining) {
     }
   );
   // send card id back to server as "move" signal:
-  $("#player-hand-container>.mcard").click(function () {
-    $("#player-hand-container>.mcard").unbind();
-    const cardID = $("this").attr("id");
-    socket.emit("move", { id: cardID });
+  $(".hand-card").click(function () {
+    $(".hand-card").unbind();
+    const cardID = $(this).attr("id");
+    console.log("card picked: " + cardID);
+    playCard(cardID);
+    waitGameData = true;
     $(this).fadeTo(500, 0.5); //isn't working?
   });
 }
 
 // get player to choose whether to play the card as cash:
-function chooseIfCash(card) {
+function chooseIfCash(card, callback) {
   $("#options-popup").css("display", "inline-block");
-  $("#options-heading").append("Play card as cash?");
+  $("#options-heading").append("<p>Play card as cash?</p>");
   $("#options-options").append(
-    "<div id='yes-btn' class='options-button'>Yes</div>"
+    "<div id='yes-btn' class='options-button'><p>Yes</p></div>"
   );
-  $("#yes-btn").click(function (card) {
+  $("#yes-btn").click(function () {
+    console.log("card: " + JSON.stringify(card, null, 2));
+    console.log("sending move with cardid " + card.id);
     socket.emit("move", { id: card.id, options: { playAsCash: true } });
+    waitGameData = true;
     closeOptions();
   });
   $("#options-options").append(
-    "<div id='no-btn' class='options-button'>No</div>"
+    "<div id='no-btn' class='options-button'><p>No</p></div>"
   );
-  $("#no-btn").click(function (card) {
-    getFurtherOptions(card);
+  $("#no-btn").click(function () {
     closeOptions();
+    callback(card);
   });
 }
 
-// get further options if card isn't played as cash:
-function getFurtherOptions(card, yes) {
+function playCard(cardID) {
+  const hand = clientGameData.playerData[0].hand;
+  let card = {};
+  for (let c = 0; c < hand.length; c++) {
+    if (hand[c].id === cardID) {
+      card = hand[c];
+      break;
+    }
+  }
   /*
    cardTypes = [
     "rent", - COLOUR 1 / COLOUR 2 / RENT
@@ -60,97 +78,137 @@ function getFurtherOptions(card, yes) {
     "propB", PROPERTY (IF COMPLETE PROPERTIES) / POWER
   ];
   */
-  $("#options-popup").css("display", "inline-block");
   if (card.cardType === "rent") {
     // options object = {playAsCash: (true/false), colourPlayed: (colour) }
-    const colours = card.card.rentColours;
-    $("#options-heading").append("Pick rent colour:");
-    $("#options-options").append(
-      "<div id='btn-1' class='options-button'>" + colours[0] + "</div>"
-    );
-    $("#btn-1").click(function (card) {
-      socket.emit("move", {
-        id: card.id,
-        options: { playAsCash: false, colourPlayed: colours[0] },
-      });
-      closeOptions();
+    chooseIfCash(card, function () {
+      const colours = card.card.rentColours;
+      $("#options-heading").append("<p>Pick rent colour</p>");
+      for (let i = 0; i < card.card.rentColours.length; i++) {
+        const colour = card.card.rentColours[i];
+        $("#options-options").append(
+          "<div id='btn-" + i + "' class='options-button'>" + colour + "</div>"
+        );
+        $("#btn-" + i).click(function () {
+          socket.emit("move", {
+            id: card.id,
+            options: { playAsCash: false, colourPlayed: colour },
+          });
+          waitGameData = true;
+          closeOptions();
+        });
+        $("#options-popup").css("display", "inline-block");
+      }
     });
-    $("#options-options").append(
-      "<div id='btn-2' class='options-button'>" + colours[1] + "</div>"
-    );
-    $("#btn-2").click(function (card) {
-      socket.emit("move", {
-        id: card.id,
-        options: { playAsCash: false, colourPlayed: colours[1] },
-      });
-      closeOptions();
-    });
-  } else if (card.cardType === "rentAny") {
+  } else if (card.name === "rent-any") {
     // options object = {playAsCash: (true/false), victim: (victim position), colourPlayed: (colour) }
-    pickVictim(function (Victim) {
-      pickAnyColour(function (Colour) {
+    chooseIfCash(card, function () {
+      pickVictim(function (victim) {
+        pickAnyColour(function (colour) {
+          socket.emit("move", {
+            id: card.id,
+            options: {
+              playAsCash: false,
+              victim: victim,
+              colourPlayed: colour,
+            },
+          });
+          waitGameData = true;
+          closeOptions();
+        });
+      });
+    });
+  } else if (card.name === "deal-breaker") {
+    // options object = {playAsCash: (true/false), victim: (victim position), streetID: (street id)}
+    chooseIfCash(card, function () {
+      pickStreet(function (victim, streetID) {
         socket.emit("move", {
           id: card.id,
-          options: { playAsCash: false, victim: victim, colourPlayed: colour },
+          options: { playAsCash: false, victim: victim, streetID: streetID },
         });
+        waitGameData = true;
         closeOptions();
       });
     });
-  } else if (card.name === "dealBreaker") {
-    // options object = {playAsCash: (true/false), victim: (victim position), streetID: (street id)}
-    pickStreet(function (victim, streetID) {
-      socket.emit("move", {
-        id: card.id,
-        options: { playAsCash: false, victim: victim, streetID: streetID },
-      });
-      closeOptions();
-    });
-  } else if (card.name === "slyDeal") {
-    // options object = {playAsCash: (true/false), victim: (victim position), targetCard: targetCardID}
-    pickCard(function (victim, cardID) {
-      socket.emit("move", {
-        id: card.id,
-        options: {
-          playAsCash: false,
-          victim: victim,
-          targetCardID: targetCardID,
-        },
-      });
-      closeOptions();
-    });
-  } else if (card.name === "forcedDeal") {
-    // options object = {playAsCash: (true/false), victim: (victim position), targetCardID, swapCardID }
-    pickCard(function (victim, targetCardID) {
-      pickSwapCard(function (swapCardID) {
+  } else if (card.name === "sly-deal") {
+    // options object = {payAsCash: (true/false), victim: (victim position), targetCard: targetCardID}
+    chooseIfCash(card, function () {
+      pickCard(function (victim, targetCardID) {
         socket.emit("move", {
           id: card.id,
           options: {
             playAsCash: false,
             victim: victim,
             targetCardID: targetCardID,
-            swapCardID: swapCardID,
           },
         });
+        waitGameData = true;
         closeOptions();
       });
     });
-  } else if (card.name === "debtCollector") {
+  } else if (card.name === "forced-deal") {
+    chooseIfCash(card, function () {
+      // options object = {playAsCash: (true/false), victim: (victim position), targetCardID, swapCardID }
+      pickCard(function (victim, targetCardID) {
+        pickSwapCard(function (swapCardID) {
+          socket.emit("move", {
+            id: card.id,
+            options: {
+              playAsCash: false,
+              victim: victim,
+              targetCardID: targetCardID,
+              swapCardID: swapCardID,
+            },
+          });
+          waitGameData = true;
+          closeOptions();
+        });
+      });
+    });
+  } else if (card.name === "debt-collector") {
     // options object = {playAsCash: (true/false), victim: (victim position) }
-    pickVictim(function (victim) {
+    chooseIfCash(card, function () {
+      pickVictim(function (victim) {
+        socket.emit("move", {
+          id: card.id,
+          options: { playAsCash: false, victim: victim },
+        });
+        waitGameData = true;
+        closeOptions();
+      });
+    });
+  } else if (card.cardType === "propB" && hasCompleteStreet()) {
+    chooseIfCash(card, function () {
       socket.emit("move", {
         id: card.id,
-        options: { playAsCash: false, victim: victim },
+        options: { playAsCash: false },
       });
-      closeOptions();
+    });
+  } else if (card.cardType === "power") {
+    chooseIfCash(card, function () {
+      socket.emit("move", {
+        id: card.id,
+        options: { playAsCash: false },
+      });
     });
   } else {
-    console.log(card.name + " not recognised, no options defined");
+    socket.emit("move", {
+      id: card.id,
+      options: { playAsCash: false },
+    });
   }
+}
+
+function hasCompleteStreet() {
+  let property = clientGameData.playerData[0].property;
+  for (let s = 0; s < property.length; s++) {
+    if (property.complete === true) return true;
+  }
+  return false;
 }
 
 // pick a colour for a "rentAny" card
 function pickAnyColour(callback) {
-  $("#options-heading").append("Pick a colour");
+  $("#options-heading").append("<p>Pick a colour</p>");
   const colours = [
     "red",
     "dblue",
@@ -172,8 +230,9 @@ function pickAnyColour(callback) {
         colour +
         "</div>"
     );
-    $(colour + "-opt-btn").click(function (card) {
+    $("#" + colour + "-opt-btn").click(function () {
       callback(colour);
+      closeOptions();
     });
   }
   $("#options-popup").css("display", "inline-block");
@@ -181,63 +240,135 @@ function pickAnyColour(callback) {
 
 // pick a target card for slydeal / forced deal
 function pickCard(callback) {
-  $("#options-heading").append("Pick a colour");
-  $("#options-popup").css("display", "inline-block");
-  let victim = prompt("victim relpos");
-  let targetCardID = prompt("target card id:");
-  // TOD0 - UPDATE THIS TO INTERACTIVE
-  callback(victim, targetCardID);
+  optAlert("Pick a card to steal.");
+  for (let p = 1; p < clientGameData.playerData.length; p++) {
+    const player = clientGameData.playerData[p];
+    for (let s = 0; s < player.property.length; s++) {
+      const street = player.property[s];
+      if (!street.complete) {
+        for (let c = 0; c < street.cards.length; c++) {
+          const card = street.cards[c];
+          $("#" + card.id).addClass("selection-highlight");
+          $("#" + card.id).click(function () {
+            callback(p, card.id);
+          });
+        }
+      }
+    }
+  }
 }
 
 // pick a swap card for forced deal
 function pickSwapCard(callback) {
-  $("#options-heading").append("Pick property card to swap");
-  $("#options-popup").css("display", "inline-block");
-  let cardID = prompt("swap card id:");
-  //TODO UPDATE THIS TO INTERACTIVE
-  callback(cardID);
+  optAlert("Pick a card to swap.");
+  let property = clientGameData.playerData[0];
+  for (let s = 0; s < property.length; s++) {
+    const street = property[s];
+    for (let c = 0; c < property[s].length; c++) {
+      const card = street.cards[c];
+      $("#" + card.id).addClass("selection-highlight");
+      $("#" + card.id).click(function () {
+        callback(card.id);
+      });
+    }
+  }
 }
 
 // pick victim for rentAll, dealbreaker:
 function pickVictim(callback) {
-  $("#options-heading").append("Pick a colour");
-  $("#options-popup").css("display", "inline-block");
-  let victim = "victim rel pos:";
-  // TODO
+  let victim = prompt("victim rel pos:");
+  // TODO add in better display to give player something to pick
   callback(victim);
 }
 
 // picks a street for deal breaker:
 function pickStreet(callback) {
-  $("#options-heading").append("Pick a colour");
-  $("#options-popup").css("display", "inline-block");
-  let victim = "victim rel pos:";
-  let streetID = prompt("target street ID:");
-  // TODO - CAN ONLY PICK FULL STREETS?
-  // TODO - NEED TO GIVE FULL STREETS EXTRA PROPERTY / DISPLAY
-  callback(victim, streetID);
+  optAlert("Pick a completed property set to steal");
+  for (let p = 1; p < clientGameData.playerData.length; p++) {
+    const player = clientGameData.playerData[p];
+    for (let s = 0; s < player.property.length; s++) {
+      const street = player.property[s];
+      if (street.complete) {
+        $("#street-" + street.streetID).addClass("selection-highlight");
+        $("#street-" + street.streetID).click(function () {
+          callback(p, street.streetID);
+        });
+      }
+    }
+  }
 }
 
 // choose hand card to discard:
 function chooseDiscard() {
-  let card = prompt("discard card with id: ");
-  socket.emit("discard", { id: card });
+  optAlert("You have too many cards, choose one to discard");
+  $(".hand-card").click(function () {
+    socket.emit("discard", { id: $(this).attr("id") });
+  });
+  $(".hand-card").hover(
+    function () {
+      $(this).addClass("hand-card-hover");
+    },
+    function () {
+      $(this).removeClass("hand-card-hover");
+    }
+  );
 }
 
+// creates alert with ok button
+optAlert = function (message) {
+  $("#options-heading").append("<p>" + message + "</p>");
+  $("#options-options").append(
+    "<div id='ok-btn' class='options-button'><p>ok</p></div>"
+  );
+  $("#options-popup").css("display", "inline-block");
+  $("#ok-btn").click(function () {
+    closeOptions();
+  });
+};
+
 // hide and clear options container:
-function closeOptions() {
-  $("options-heading").empty();
-  $("options-options").empty();
+closeOptions = function () {
+  $("#options-heading").empty();
+  $("#options-options").empty();
   $("#options-popup").css("display", "none");
-}
+};
 
 /*
       USER INPUT FUNCTIONS (NOT DURING TURN)
 */
 
+// chose money card to pay current player:
+function chooseValueCard(owed) {
+  optAlert("you owe " + owed + " please choose a card");
+  const payCards = [];
+  const money = clientGameData.playerData[0].money;
+  const prop = clientGameData.playerData[0].property;
+  for (let c = 0; c < money.length; c++) {
+    $("#" + money[c].id).addClass("selection-highlight");
+    $("#" + money[c].id).click(function () {
+      $("#" + money[c].id).css("display", "none");
+      $("#" + money[c].id).unbind();
+      socket.emit("pay", { id: $(this).attr("id") });
+    });
+  }
+  for (let s = 0; s < prop.length; s++) {
+    const street = prop[s];
+    for (let c = 0; c < street.cards.length; c++) {
+      const card = street.cards[c];
+      $("#" + card.id).addClass("selection-highlight");
+      $("#" + card.id).click(function () {
+        $("#" + card.id).css("display", "none");
+        $("#" + card.id).unbind();
+        socket.emit("pay", { id: $(this).attr("id") });
+      });
+    }
+  }
+}
+
+// TO DO - tell player what has been played
 // accept or play just say no, if avaliable:
 function chooseAccept(options) {
-  $("#options-heading").append("Pick a colour");
+  $("#options-heading").append("<p>Accept?</p>");
   for (let i = 0; i < options.length; i++) {
     const option = options[i];
     $("#options-options").append(
@@ -249,16 +380,10 @@ function chooseAccept(options) {
     );
     $(colour + "-opt-btn").click(function (card) {
       socket.emit("accept", { option: "accept" });
-      $("#options-popup").css("display", "none");
+      closeOptions();
     });
   }
   $("#options-popup").css("display", "inline-block");
-}
-
-// chose money card to pay current player:
-function chooseValueCard(owed) {
-  let card = prompt("you owe " + owed + " choose value card id");
-  socket.emit("pay", { id: card });
 }
 
 /*
@@ -287,16 +412,17 @@ function updateProperty(user, data) {
   for (let s = 0; s < data.length; s++) {
     const street = data[s];
     const colour = data[s].colour;
+    const streetID = data[s].streetID;
     $(".property-container.player" + user).append(
-      "<div class='street " + colour + "'></div>"
+      "<div class='street-" + streetID + "'></div>"
     );
     // loops over properties in street:
     for (let c = 0; c < street.cards.length; c++) {
       const card = street.cards[c];
-      $(".street." + colour).append(
-        "<div id='" +
+      $(".street-" + streetID).append(
+        "<div class='card-parent'><div id='" +
           card.id +
-          "' class='card-parent'><div class= 'mcard " +
+          "' class= 'mcard " +
           card.name +
           "'></div></div>"
       );
@@ -310,31 +436,39 @@ function updateProperty(user, data) {
 function updateMoney(player, data) {
   // empty money container
   $(".money-container.player" + player).empty();
-  // TODO : PLAYER HAND CONTAINER
-  console.log(player);
+  // TODO : OTHER PLAYER HAND CONTAINER
   if (player === 0) {
     // for user
     for (let c = 0; c < data.length; c++) {
       const card = data[c];
-      console.log("appending user money");
       $(".money-container.player" + player).append(
-        "<div class=money-parent><div id='" +
+        "<div class='money-parent' id='prnt-" +
+          card.id +
+          "'><div id='" +
           card.id +
           "' class='mcard " +
           card.name +
           "'></div></div>"
+      );
+      $("#prnt-" + card.id).hover(
+        function () {
+          $(this).addClass("money-parent-hover");
+        },
+        function () {
+          $(this).removeClass("money-parent-hover");
+        }
       );
     }
   } else {
     // for other players
     for (let c = 0; c < data.moneyCardCount - 1; c++) {
       $(".money-container.player" + player).append(
-        "<div class=money-parent><div class='mcard'></div></div>"
+        "<div class=money-parent><div class='mcard money-pile-card'></div></div>"
       );
     }
     if (data.moneyCardCount > 0) {
       $(".money-container.player" + player).append(
-        "<div class=money-parent><div class='mcard " +
+        "<div class=money-parent><div class='mcard money-pile-card " +
           data.moneyTopCard.name +
           "'></div></div>"
       );
@@ -351,18 +485,18 @@ function updateDeck(data) {
   if (data.deckCardCount !== 0) {
     for (let c = 0; c < data.deckCardCount; c++) {
       $("#card-pile").append(
-        "<div class=money-parent><div class='mcard'></div></div>"
+        "<div class=deck-card-parent><div class='mcard'></div></div>"
       );
     }
   }
   if (data.discardedCount !== 0) {
     for (let c = 0; c < data.discardedCount; c++) {
       $("#discard-pile").append(
-        "<div class=money-parent><div class='mcard'></div></div>"
+        "<div class=deck-card-parent><div class='mcard'></div></div>"
       );
     }
     $("#discard-pile").append(
-      "<div class=money-parent><div class='mcard " +
+      "<div class=deck-card-parent><div class='mcard " +
         data.discardedTopCard.name +
         "'></div>"
     );
@@ -406,6 +540,9 @@ function updateLobby(data) {
 
 // connect to socket
 var socket = io.connect("http://localhost:4000");
+var waitGameData = false;
+const uTime = 200;
+var clientGameData = {};
 
 // Login:
 var loginNameInput = $("#name");
@@ -431,7 +568,6 @@ socket.on("connection", function () {
 
 // game started message from server
 socket.on("gameStatus", function (data) {
-  updateGameStatus(data)
   console.log("received game status");
   if (data.gameStarted === true) {
     console.log("game is starting");
@@ -445,28 +581,55 @@ socket.on("gameStatus", function (data) {
 
 // game data message
 socket.on("gameData", function (gameData) {
-  updateAllGameData (gameData);
+  console.log("received gameData");
+  clientGameData = gameData;
+  updateAllGameData(gameData);
+  waitGameData = false;
 });
 
 // move request
 socket.on("moveRequest", function (data) {
-  activateMove(data.movesRemaining);
+  setTimeout(function () {
+    console.log("received moveRequest");
+    while (waitGameData) {
+      console.log("waiting");
+    }
+    console.log("activating move");
+    activateMove(data.movesRemaining);
+  }, uTime);
 });
 
+// get options request
 socket.on("getOptions", function (data) {
-  chooseIfCash(data.card);
+  setTimeout(function () {
+    console.log("received getOptions");
+    console.log(JSON.stringify(data, null, 2));
+    console.log(data.card.id);
+    chooseIfCash(data.card);
+  }, uTime);
 });
 
+// request to pay another player
 socket.on("payRequest", function (data) {
-  chooseValueCard(data.amount);
+  setTimeout(function () {
+    console.log("received payRequest");
+    while (waitGameData) {}
+    chooseValueCard(data.amount);
+  }, uTime);
 });
 
 // request to discard cards if too many in hand
 socket.on("forceDiscard", function (data) {
-  chooseDiscard(data.excessCards);
+  setTimeout(function () {
+    console.log("received forceDiscard");
+    chooseDiscard(data.excessCards);
+  }, uTime);
 });
 
 // request to accept steal from another player (or play JSN)
 socket.on("acceptRequest", function (data) {
-  chooseAccept(data.options);
+  setTimeout(function () {
+    console.log("received acceptRequest");
+    chooseAccept(data.options);
+  }, uTime);
 });

@@ -38,7 +38,7 @@ Game = function () {
   this.allDebtsPaid = function () {
     for (let p = 0; p < this.players.length; p++) {
       const player = this.players[p];
-      if (player.moneyOwed > 0) {
+      if (player.moneyOwes > 0) {
         return false;
       }
     } 
@@ -74,10 +74,10 @@ Game = function () {
     for (let p = 0; p < this.players.length; p++) {
       const player = this.players[p]
       for (let s = 0; s < player.property.length; s++) {
-        for (let c = 0; c < player.property[s].length; c++) {
-          if (player.property[s][c].id = id) {
-            return player;
-          }
+        const street = player.property[s];
+        for (let c = 0; c < street.cards.length; c++) {
+          const card = street[c];
+          if (card.id = id) return player;
         }
       }
     }
@@ -119,11 +119,11 @@ Game = function () {
 
   // gets game position of player from relative position to another player
   this.getPlayerByRelPos = function (player, position) {
-    const sum = player.position + position;
-    if (sum > this.players.length) {
-      return sum - this.players.length;
+    const sum = player.position + Number(position);
+    if (sum > this.players.length - 1) {
+      return this.players[sum - this.players.length];
     } else {
-      return sum;
+      return this.players[sum];
     }
   };
 
@@ -136,7 +136,7 @@ Game = function () {
 
   // increments player counter to decide whos turn it is
   this.incrPlayer = function () {
-    if (this.currentPlayer < this.players.length) {
+    if (this.currentPlayer < this.players.length - 1) {
       this.currentPlayer++;
     } else {
       this.currentPlayer = 0;

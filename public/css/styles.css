@@ -66,7 +66,7 @@ h3 {
   position: absolute;
   top: 20px;
   left: 50%;
-  margin-left: -330px;
+  margin-left: -250px;
   display: none;
 }
 
@@ -94,7 +94,7 @@ h3 {
 #options-options {
   display: flex;
   flex-flow: row;
-  max-width: 800px;
+  max-width: 600px;
 }
 
 .options-button {
@@ -208,11 +208,24 @@ h3 {
   background-size: 118px, auto;
 }
 
+.selection-highlight {
+  box-shadow: 0px 0px 22px 0px rgba(0,209,192,1);
+}
+
+.deck-card-parent{
+  width: 100px;
+  height: 1px;
+  position: relative;
+}
 
 .money-parent{
   width: 100px;
-  height: 3px; 
+  height: 2px; 
   position: relative;
+}
+
+.money-parent-hover{
+  height: 30px;
 }
 
 .player-area {
@@ -267,4 +280,13 @@ h3 {
   border-radius: 5px;
   display: flex;
   flex-direction: row;
+}
+
+#btn-end-turn {
+  width: 200px;
+  height: 200px;
+  position: fixed;
+  bottom: 200px;
+  right: 200px;
+  display: none;
 }

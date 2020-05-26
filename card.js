@@ -6,14 +6,13 @@ function Card(cardType, creatorObject, id) {
   this.cardType = cardType;
 
   if (this.cardType === "rent") {
-    this.card.power = {}
-    this.card.power.power = getRent;
+    this.card.power = getRent;
   }
 
   // options object = {playAsCash: (true/false), colourPlayed: (colour) }
-  getRent = function (player, game, options) {
+  getRent = function (game, player, options) {
     var rentAmount = player.getRentAmountByColour(options.colourPlayed) * player.rentMultiplier;
-    player.chargeOthers(rentAmount);
+    player.chargeOthers(rentAmount, game);
     player.rentMultiplier = 1;
   }
 

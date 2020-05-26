@@ -8,6 +8,7 @@ function Street(card, game) {
 
   // Rent amounts:
   const RENTS = {
+    any: [0],
     brown: [1, 2],
     dblue: [3, 8],
     green: [2, 4, 7],
@@ -32,7 +33,7 @@ function Street(card, game) {
     if (RENTS[this.colour].length < this.cards.length) {
       return RENTS[this.colour][this.cards.length];
     } else {
-      return RENTS[this.colour][this.colour.length - 1];
+      return RENTS[this.colour][RENTS[this.colour].length - 1];
     }
   };
 }

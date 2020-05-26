@@ -9,7 +9,7 @@ dealBreaker = function (game, player, options) {
 // options object = {playAsCash: (true/false), victim: (victim position) }
 debtCollector = function (game, player, options) {
     const victimRelPos = options.victim;
-    const victim = game.getPlayerByRelPosition(player.position, victimRelPos);
+    const victim = game.getPlayerByRelPos(player, victimRelPos);
     const charge = 5;
     player.chargeOther(charge, victim);
 };
@@ -22,8 +22,8 @@ forcedDeal = function (game, player, options) {
     const targetCard = options.targetCardID;
     const swapCard = options.swapCardID;
     const victim = game.getPlayerByCardID(options);
-    player.addCardToProp(victim.popPropCardByID(targetCard));
-    victim.addCardToProp(player.popPropCardByID(swapCard));
+    player.addCardToProp(victim.popPropCardByID(targetCard), game);
+    victim.addCardToProp(player.popPropCardByID(swapCard), game);
 };
 // options object = {playAsCash: (true/false) }
 itsMyBirthday = function (game, player, options) {
@@ -34,7 +34,7 @@ itsMyBirthday = function (game, player, options) {
 slyDeal = function (game, player, options) {
     const targetCard = options.targetCardID;
     const victim = game.getPlayerByCardID(options.victim);
-    player.addCardToProp(victim.popPropCardByID(targetCard));
+    player.addCardToProp(victim.popPropCardByID(targetCard), game);
 };
 // options object = {playAsCash: (true/false) }
 passGo = function (game, player, options) {
@@ -43,7 +43,7 @@ passGo = function (game, player, options) {
 // options object = {playAsCash: (true/false), victim: (victim position), colourPlayed: (colour) }
 rentAny = function (game, player, options) {
     const victimRelPos = options.victim;
-    const victim = game.getPlayerByRelPosition(player.position, victimRelPos);
+    const victim = game.getPlayerByRelPos(player, victimRelPos);
     const charge = player.getRentAmountByColour(options.colourPlayed);
     player.chargeOther(charge, victim);
 }
@@ -222,14 +222,14 @@ exports.CARDS = {
   ],
   rent: [
     {
-      rentColours: ["dblue", "green"],
+      rentColours: ["green", "dblue"],
       numberof: 2,
-      name: "rent-dblue-green",
+      name: "rent-green-dblue",
     },
     {
       rentColours: ["brown", "lblue"],
       numberof: 2,
-      rent: "rent-brown-lblue",
+      name: "rent-brown-lblue",
     },
     {
       rentColours: ["purple", "orange"],
@@ -261,7 +261,7 @@ exports.CARDS = {
       value: 3,
       numberof: 3,
       name: "rent-any",
-      confirm: true,
+      confirm: false,
     },
   ],
   power: [
