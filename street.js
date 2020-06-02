@@ -30,10 +30,10 @@ function Street(card, game) {
   };
 
   this.getRentAmount = function () {
-    if (RENTS[this.colour].length < this.cards.length) {
-      return RENTS[this.colour][this.cards.length];
-    } else {
+    if (this.isComplete()) {
       return RENTS[this.colour][RENTS[this.colour].length - 1];
+    } else {
+      return RENTS[this.colour][this.cards.length - 1];
     }
   };
 }

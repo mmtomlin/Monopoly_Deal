@@ -55,32 +55,36 @@ io.on("connection", function (socket) {
 
   // if player plays cards during turn
   socket.on("move", function (data) {
-    if (typeof(data.id) === "undefined") console.log(JSON.stringify(data, null, 2));
+    if (typeof data.id === "undefined") {
+      console.log(JSON.stringify(data, null, 2));
+    }
     console.log(socket.id + " has sent " + data.id);
     console.log("with options: " + JSON.stringify(data.options, null, 2));
     let player = game.getPlayerBySocket(socket.id);
     if (player.movesRemaining > 0) {
-      console.log("moves remaining: " + player.movesRemaining)
       player.playHandCard(data.id, game, data.options);
     }
   });
 
   // if player moves property cards / money during turn
-  socket.on("rearrangeProp", function (data) {
-    //TODO
-  });
-  socket.on("rearrangeMoney", function (data) {
-    //TODO
+  socket.on("rearrange", function (data) {
+    console.log("received rearrange message of " + JSON.stringify(data,null,2));
+    let player = game.getPlayerBySocket(socket.id);
+    if (player.position === game.currentPlayer) {
+      player.rearrange(game, data);
+      game.updateAllClients();
+      player.continueTurn(game);
+    }    
   });
 
   // accept power
   socket.on("accept", function (data) {
-    console.log("accept received from " + socket.id);
+    console.log("accept received from " + socket.id + ", with option " + data.option);
     let player = game.getPlayerBySocket(socket.id);
     let owedPlayer = game.players[game.currentPlayer];
     owedPlayer.waitResponse = false;
-    if (data === "playJustSayNo" && player.hasJustSayNo) {
-      game.discarded.push(player.popJustSayNo());
+    if (data.option !== "Accept" && !player.hasJustSayNo()) {
+      game.deck.discarded.push(player.popJustSayNo());
     } else {
       let a = owedPlayer.loadedPower;
       a.pwr(a.opts[0], a.opts[1], a.opts[2]);
@@ -93,7 +97,7 @@ io.on("connection", function (socket) {
     console.log("discard received from " + socket.id);
     let player = game.getPlayerBySocket(socket.id);
     game.deck.discarded.push(player.popHandCardByID(data.id));
-    player.finishMove(game);
+    player.finishTurn(game);
   });
 
   // data.id = money card id
@@ -112,9 +116,10 @@ io.on("connection", function (socket) {
     }
   });
 
-  socket.on("endTurn", function() {
+  socket.on("endTurn", function () {
+    console.log("end turn receieved from " + socket.id);
     let player = game.getPlayerBySocket(socket.id);
     player.movesRemaining = 0;
     player.finishTurn(game);
-  })
+  });
 });

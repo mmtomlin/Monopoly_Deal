@@ -32,7 +32,7 @@ function Player(socket, name, position) {
 
   //
   this.continueTurn = function (game) {
-    console.log("sending moveRequest");
+    console.log("sending moveRequest, " + this.movesRemaining + " moves left.");
     this.socket.emit("moveRequest", {
       movesRemaining: this.movesRemaining,
     });
@@ -40,14 +40,17 @@ function Player(socket, name, position) {
 
   this.finishTurn = function (game) {
     game.updateAllClients();
-    if (!this.waitResponse && game.allDebtsPaid()) {
-      if (!this.handTooBig(game)) {
-        game.continue();
+    // TO DO - UPDATE GAME STATUS MESSAGE IF WAITING FOR OTHER PLAYER INPUT
+    if (game.currentPlayer === this.position) {
+      if (!this.waitResponse && game.allDebtsPaid()) {
+        if (!this.handTooBig(game)) {
+          game.continue();
+        }
+      } else {
+        this.socket.emit("moveRequest", {
+          movesRemaining: 0,
+        });
       }
-    } else {
-      this.socket.emit("moveRequest", {
-        movesRemaining: 0,
-      });
     }
   };
 
@@ -56,10 +59,7 @@ function Player(socket, name, position) {
     game.updateAllClients();
     // as long as player is not waiting for inputs:
     if (!this.waitResponse && game.allDebtsPaid()) {
-      // if no moves left - end of turn
-      if (this.movesRemaining !== 0) {
-        this.continueTurn(game);
-      }
+      this.continueTurn(game);
     }
   };
 
@@ -75,7 +75,6 @@ function Player(socket, name, position) {
       card.cardType === "justSayNo" ||
       options.playAsCash === true
     ) {
-      console.log("cash card played");
       this.money.push(card);
       // if card is building, add to first full set
     } else if (card.cardType === "propB") {
@@ -90,13 +89,13 @@ function Player(socket, name, position) {
       this.money.push(card);
       // if card is prop / propAny / propWC but not propB, add to property
     } else if (card.cardType.slice(0, 4) === "prop") {
-      console.log("prop card played");
       this.addCardToProp(card, game);
       // if power does not require request function:
     } else if (!card.card.confirm) {
       card.card.power(game, this, options);
       // if power requires confirmation from target player:
     } else {
+      console.log("debug: waiting for response from victim");
       this.loadedPower = {
         pwr: card.card.power,
         opts: [this, game, options],
@@ -113,6 +112,14 @@ function Player(socket, name, position) {
       OBJECT MANIPULATION:
   */
 
+  this.popJustSayNo = function () {
+    for (let c = 0; c < this.hand.length; c++) {
+      if (this.hand[c].cardType === "JustSayNo") {
+        return this.hand.splice(c, 1)[0];
+      }
+    }
+  };
+
   // self-explanatory
   // TODO - return error on invalid id
   this.popHandCardByID = function (id) {
@@ -121,7 +128,7 @@ function Player(socket, name, position) {
         return this.hand.splice(c, 1)[0];
       }
     }
-    throw "card not found: " + id;
+    console.log("hand card not found: " + id);
   };
 
   // TODO - return error on invalid id
@@ -137,6 +144,7 @@ function Player(socket, name, position) {
         }
       }
     }
+    console.log("prop card not found: " + id);
   };
 
   this.popMoneyCardByID = function (id) {
@@ -145,6 +153,7 @@ function Player(socket, name, position) {
         return this.money.splice(c, 1)[0];
       }
     }
+    console.log("money card not found: " + id);
   };
 
   this.popCardByID = function (id) {
@@ -160,13 +169,58 @@ function Player(socket, name, position) {
     return card;
   };
 
-  this.reArrangeCash = function (game) {
-    //TODO
+  this.rearrange = function (game, data) {
+    // if property rearrange option is defined
+    if (typeof data.prop !== "undefined") {
+      const card = this.popPropCardByID(data.prop.cardID);
+      if (data.prop.streetID === "street-new") {
+        const street = new Street(card, game);
+        this.property.push(street);
+        this.cleanStreets();
+      } else {
+        const street = this.getStreetByID(data.prop.streetID);
+        if (
+          card.cardType === "propAny" ||
+          (card.cardType === "prop" && card.card.colour === street.colour)
+        ) {
+          street.cards.push(card);
+        } else if (
+          card.cardType === "propWC" &&
+          card.card.reverseColour === street.colour
+        ) {
+          street.cards.push(card.flip());
+        } else if (card.cardType === "propB" && street.isComplete()) {
+          street.cards.push(card);
+        } else {
+          this.addCardToProp(card, game);
+        }
+      }
+      // if money rearrange option is defined:
+    } else if (typeof data.money !== "undefined") {
+      this.money.push(this.popMoneyCardByID(data.money));
+      // if flip option is defined;
+    } else if (typeof data.flip !== "undefined") {
+      const card = this.popPropCardByID(data.flip);
+      card.flip();
+      this.addCardToProp(card, game);
+      this.cleanStreets();
+    }
   };
 
-  this.reArrangeProperty = function (game) {
-    //TODO
+  this.getStreetByID = function (streetID) {
+    for (let s = 0; s < this.property.length; s++) {
+      const street = this.property[s];
+      if (street.streetID === streetID) return street;
+    }
+    console.log("street not found");
   };
+
+  this.cleanStreets = function () {
+    for (let s = 0; s < this.property.length; s++) {
+      const street= this.property[s];
+      if (street.cards.length === 0) this.property.splice(s,1);
+    }
+  }
 
   /*
       ACTIONS ON OTHER PLAYERS

@@ -2,34 +2,119 @@
       PLAYER INPUT FUNCTIONS (DURING TURN)
 */
 
+function enableRearrange() {
+  // spin wildcards
+  const property = clientGameData.playerData[0].property;
+  for (let s = 0; s < property.length; s++) {
+    const street = property[s];
+    for (let c = 0; c < street.cards.length; c++) {
+      const card = street.cards[c];
+      if (card.cardType === "propWC") {
+        $("#" + card.id).hover(
+          function () {
+            $(this).append('<div class="flip-button"></div>');
+            $(".flip-button").on("click", function () {
+              console.log("flipping card " + card.id);
+              socket.emit("rearrange", { flip: card.id });
+            });
+          },
+          function () {
+            $(this).empty();
+          }
+        );
+      }
+    }
+  }
+  // drag drop property:
+  $(".player0>.street>.card-parent").unbind();
+  $(".player0>.street>.card-parent").attr("draggable", "true");
+  $(".player0>.street>.card-parent").on("dragstart", function () {
+    draggedItem = $(this);
+    setTimeout(function () {
+      $(this).css("display", "none");
+    }, 0);
+    $(".player0.property-container").append(
+      "<div class='street' id='street-new'></div>"
+    );
+    $(".player0>.street").on("dragover", function (event) {
+      event.preventDefault();
+    });
+    $(".player0>.street").on("dragenter", function (event) {
+      event.preventDefault();
+      $(this).css("background-colour", "blue");
+    });
+    $(".player0>.street").on("dragleave", function (event) {
+      $(this).css("background-colour", "grey");
+    });
+    $(".player0>.street").on("drop", function (event) {
+      const cardID = draggedItem[0].firstElementChild.getAttribute("id");
+      const streetID = $(this).attr("id");
+      console.log("Transferring card " + cardID + " to street " + streetID);
+      socket.emit("rearrange", {
+        prop: {
+          cardID: cardID,
+          streetID: streetID,
+        },
+      });
+    });
+  });
+  $(".player0>.street>.card-parent").on("dragend", function () {
+    setTimeout(function () {
+      $("#street-new").remove();
+      $(".street").unbind();
+      $(this).css("display", "block");
+      draggedItem = null;
+    }, 0);
+  });
+  // drag drop money:
+  $(".player0>.money-parent>.mcard").on("click", function () {
+    const card = $(this).attr("id");
+    console.log("bringing card " + card + " to top of money pile");
+    socket.emit("rearrange", { money: card });
+  });
+}
+
 // start move:
 function activateMove(remaining) {
   console.log("move : " + remaining);
-  const alertString = "Your turn, you have " + remaining + " moves remaining.";
-  $("#btn-end-turn").css("display", "inline-block");
-  $("#btn-end-turn").click(function () {
-    $("#btn-end-turn").css("display", "none");
-    socket.emit("endTurn");
-  })
-  if (remaining === 3) optAlert(alertString);
-  // hover animation:
-  $(".hand-card").hover(
-    function () {
-      $(this).addClass("hand-card-hover");
-    },
-    function () {
-      $(this).removeClass("hand-card-hover");
-    }
-  );
-  // send card id back to server as "move" signal:
-  $(".hand-card").click(function () {
-    $(".hand-card").unbind();
-    const cardID = $(this).attr("id");
-    console.log("card picked: " + cardID);
-    playCard(cardID);
-    waitGameData = true;
-    $(this).fadeTo(500, 0.5); //isn't working?
-  });
+  if (remaining === 3) {
+    const alertString =
+      "Your turn, you have " + remaining + " moves remaining.";
+    optAlert(alertString);
+    $("#move-box").css("display", "inline-block");
+    $("#btn-end-turn").click(function () {
+      $("#move-box").css("display", "none");
+      $("#btn-end-turn").unbind();
+      $(".hand-card").removeClass("selection-highlight");
+      $("#btn-end-turn").removeClass("selection-highlight");
+      socket.emit("endTurn");
+    });
+  }
+  $("#moves").html(remaining);
+  if (remaining > 0) {
+    $(".hand-card").addClass("selection-highlight");
+    // hover animation:
+    $(".hand-card").hover(
+      function () {
+        $(this).addClass("hand-card-hover");
+      },
+      function () {
+        $(this).removeClass("hand-card-hover");
+      }
+    );
+    // send card id back to server as "move" signal:
+    $(".hand-card").click(function () {
+      $(".hand-card").unbind();
+      const cardID = $(this).attr("id");
+      console.log("card picked: " + cardID);
+      playCard(cardID);
+      waitGameData = true;
+      $(this).fadeTo(500, 0.5); //isn't working?
+    });
+  } else if (remaining === 0) {
+    $(".hand-card").removeClass("selection-highlight");
+    $("#btn-end-turn").addClass("selection-highlight");
+  }
 }
 
 // get player to choose whether to play the card as cash:
@@ -208,6 +293,8 @@ function hasCompleteStreet() {
 
 // pick a colour for a "rentAny" card
 function pickAnyColour(callback) {
+  $(".mcard").removeClass("selection-highlight");
+  $(".mcard").unbind();
   $("#options-heading").append("<p>Pick a colour</p>");
   const colours = [
     "red",
@@ -241,6 +328,8 @@ function pickAnyColour(callback) {
 // pick a target card for slydeal / forced deal
 function pickCard(callback) {
   optAlert("Pick a card to steal.");
+  $(".mcard").removeClass("selection-highlight");
+  $(".mcard").unbind();
   for (let p = 1; p < clientGameData.playerData.length; p++) {
     const player = clientGameData.playerData[p];
     for (let s = 0; s < player.property.length; s++) {
@@ -250,6 +339,8 @@ function pickCard(callback) {
           const card = street.cards[c];
           $("#" + card.id).addClass("selection-highlight");
           $("#" + card.id).click(function () {
+            $("#" + card.id).unbind();
+            $("#" + card.id).removeClass("selection-highlight");
             callback(p, card.id);
           });
         }
@@ -260,14 +351,18 @@ function pickCard(callback) {
 
 // pick a swap card for forced deal
 function pickSwapCard(callback) {
+  $(".mcard").removeClass("selection-highlight");
+  $(".mcard").unbind();
   optAlert("Pick a card to swap.");
-  let property = clientGameData.playerData[0];
-  for (let s = 0; s < property.length; s++) {
-    const street = property[s];
-    for (let c = 0; c < property[s].length; c++) {
+  const player = clientGameData.playerData[0];
+  for (let s = 0; s < player.property.length; s++) {
+    const street = player.property[s];
+    for (let c = 0; c < street.cards.length; c++) {
       const card = street.cards[c];
       $("#" + card.id).addClass("selection-highlight");
       $("#" + card.id).click(function () {
+        $("#" + card.id).unbind();
+        $("#" + card.id).removeClass("selection-highlight");
         callback(card.id);
       });
     }
@@ -276,13 +371,22 @@ function pickSwapCard(callback) {
 
 // pick victim for rentAll, dealbreaker:
 function pickVictim(callback) {
-  let victim = prompt("victim rel pos:");
-  // TODO add in better display to give player something to pick
-  callback(victim);
+  $(".mcard").removeClass("selection-highlight");
+  $(".mcard").unbind();
+  for (let p = 1; p < clientGameData.playerData.length; p++) {
+    $(".player-name.player" + p).addClass("selection-highlight");
+    $(".player-name.player" + p).click(function () {
+      $(".player-name").unbind();
+      $(".player-name").removeClass("selection-highlight");
+      callback(p);
+    });
+  }
 }
 
 // picks a street for deal breaker:
 function pickStreet(callback) {
+  $(".mcard").removeClass("selection-highlight");
+  $(".mcard").unbind();
   optAlert("Pick a completed property set to steal");
   for (let p = 1; p < clientGameData.playerData.length; p++) {
     const player = clientGameData.playerData[p];
@@ -299,10 +403,17 @@ function pickStreet(callback) {
 }
 
 // choose hand card to discard:
-function chooseDiscard() {
+function chooseDiscard(excessCards) {
+  //these two shouldn't be needed, might take out.
+  $(".mcard").removeClass("selection-highlight");
+  $(".mcard").unbind();
+
   optAlert("You have too many cards, choose one to discard");
+  $(".mcard").addClass("selection-highlight");
   $(".hand-card").click(function () {
     socket.emit("discard", { id: $(this).attr("id") });
+    $(".mcard").unbind();
+    $(".mcard").removeClass("selection-highlight");
   });
   $(".hand-card").hover(
     function () {
@@ -346,8 +457,8 @@ function chooseValueCard(owed) {
   for (let c = 0; c < money.length; c++) {
     $("#" + money[c].id).addClass("selection-highlight");
     $("#" + money[c].id).click(function () {
-      $("#" + money[c].id).css("display", "none");
       $("#" + money[c].id).unbind();
+      $("#" + money[c].id).css("display", "none");
       socket.emit("pay", { id: $(this).attr("id") });
     });
   }
@@ -357,8 +468,8 @@ function chooseValueCard(owed) {
       const card = street.cards[c];
       $("#" + card.id).addClass("selection-highlight");
       $("#" + card.id).click(function () {
-        $("#" + card.id).css("display", "none");
         $("#" + card.id).unbind();
+        $("#" + card.id).css("display", "none");
         socket.emit("pay", { id: $(this).attr("id") });
       });
     }
@@ -368,6 +479,7 @@ function chooseValueCard(owed) {
 // TO DO - tell player what has been played
 // accept or play just say no, if avaliable:
 function chooseAccept(options) {
+  $("#options-popup").css("display", "inline-block");
   $("#options-heading").append("<p>Accept?</p>");
   for (let i = 0; i < options.length; i++) {
     const option = options[i];
@@ -378,8 +490,8 @@ function chooseAccept(options) {
         option +
         "</div>"
     );
-    $(colour + "-opt-btn").click(function (card) {
-      socket.emit("accept", { option: "accept" });
+    $("#" + option + "-opt-btn").click(function () {
+      socket.emit("accept", { option: option });
       closeOptions();
     });
   }
@@ -398,10 +510,15 @@ updateAllGameData = function (gameData) {
   for (let p = 0; p < playerCount; p++) {
     updateProperty(p, playerData[p].property);
     updateMoney(p, playerData[p].money);
+    updateName(p, playerData[p].name);
   }
   updateHand(playerData[0].hand);
   updateDeck(gameData.tableData);
 };
+
+function updateName(player, name) {
+  $(".player-name.player" + player).html(name);
+}
 
 // updates property
 // each card is data[street].cards[card]
@@ -414,18 +531,22 @@ function updateProperty(user, data) {
     const colour = data[s].colour;
     const streetID = data[s].streetID;
     $(".property-container.player" + user).append(
-      "<div class='street-" + streetID + "'></div>"
+      "<div class='street' id='street-" + streetID + "'></div>"
     );
     // loops over properties in street:
     for (let c = 0; c < street.cards.length; c++) {
       const card = street.cards[c];
-      $(".street-" + streetID).append(
+      console.log(JSON.stringify(card,null,2));
+      $("#street-" + streetID).append(
         "<div class='card-parent'><div id='" +
           card.id +
           "' class= 'mcard " +
           card.name +
           "'></div></div>"
       );
+      if (card.flipped) {
+        $("#" + card.id).addClass("flip");
+      }
     }
   }
 }
@@ -543,6 +664,7 @@ var socket = io.connect("http://localhost:4000");
 var waitGameData = false;
 const uTime = 200;
 var clientGameData = {};
+var draggedItem = null;
 
 // Login:
 var loginNameInput = $("#name");
@@ -596,6 +718,7 @@ socket.on("moveRequest", function (data) {
     }
     console.log("activating move");
     activateMove(data.movesRemaining);
+    enableRearrange();
   }, uTime);
 });
 
