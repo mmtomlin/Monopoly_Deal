@@ -3,13 +3,12 @@
 // options object = {playAsCash: (true/false), victim: (victim position), streetID: (street id)}
 dealBreaker = function (game, player, options) {
     const streetID = options.streetID;
-    const victim = game.getPlayerByStreet(streetID);
+    const victim = game.getPlayerByRelPos(player, options.victim);
     player.property.push(victim.popStreetByID(streetID));
 };
 // options object = {playAsCash: (true/false), victim: (victim position) }
 debtCollector = function (game, player, options) {
-    const victimRelPos = options.victim;
-    const victim = game.getPlayerByRelPos(player, victimRelPos);
+    const victim = game.getPlayerByRelPos(player, options.victim);
     const charge = 5;
     player.chargeOther(charge, victim);
 };
@@ -19,11 +18,11 @@ doubleTheRent = function (game, player, options) {
 };
 // options object = {playAsCash: (true/false), victim: (victim position), targetCardID, swapCardID } 
 forcedDeal = function (game, player, options) {
-    const targetCard = options.targetCardID;
-    const swapCard = options.swapCardID;
-    const victim = game.getPlayerByCardID(options);
-    player.addCardToProp(victim.popPropCardByID(targetCard), game);
-    victim.addCardToProp(player.popPropCardByID(swapCard), game);
+    const victim = game.getPlayerByRelPos(player, options.victim);
+    player.addCardToProp(victim.popPropCardByID(options.targetCardID), game);
+    victim.addCardToProp(player.popPropCardByID(options.swapCardID), game);
+    player.cleanStreets();
+    victim.cleanStreets();
 };
 // options object = {playAsCash: (true/false) }
 itsMyBirthday = function (game, player, options) {
@@ -32,9 +31,8 @@ itsMyBirthday = function (game, player, options) {
 };
 // options object = {playAsCash: (true/false), victim: (victim position), targetCardID}
 slyDeal = function (game, player, options) {
-    const targetCard = options.targetCardID;
-    const victim = game.getPlayerByCardID(options.victim);
-    player.addCardToProp(victim.popPropCardByID(targetCard), game);
+    const victim = game.getPlayerByRelPos(player, options.victim);
+    player.addCardToProp(victim.popPropCardByID(options.targetCardID), game);
 };
 // options object = {playAsCash: (true/false) }
 passGo = function (game, player, options) {
@@ -42,8 +40,7 @@ passGo = function (game, player, options) {
 };
 // options object = {playAsCash: (true/false), victim: (victim position), colourPlayed: (colour) }
 rentAny = function (game, player, options) {
-    const victimRelPos = options.victim;
-    const victim = game.getPlayerByRelPos(player, victimRelPos);
+    const victim = game.getPlayerByRelPos(player, options.victim);
     const charge = player.getRentAmountByColour(options.colourPlayed);
     player.chargeOther(charge, victim);
 }

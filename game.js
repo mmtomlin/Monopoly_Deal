@@ -1,7 +1,7 @@
 const cards = require(__dirname + "/cards.js");
-const Deck = require(__dirname + "/deck.js")
-const Player = require(__dirname + "/player.js")
-const shuffle = require(__dirname + "/shuffle.js")
+const Deck = require(__dirname + "/deck.js");
+const Player = require(__dirname + "/player.js");
+const shuffle = require(__dirname + "/shuffle.js");
 
 /*
 GAME HEIRARCHY = GAME > ROUND > TURN > MOVE
@@ -31,7 +31,7 @@ Game = function () {
       this.players[p].drawCards(this.deck, startCards);
       this.players[p].sendAllGameData(this);
     }
-    this.players[0].startTurn(this)
+    this.players[0].startTurn(this);
   };
 
   // self explanatory
@@ -41,15 +41,15 @@ Game = function () {
       if (player.moneyOwes > 0) {
         return false;
       }
-    } 
+    }
     return true;
   };
 
   // start next player turn
   this.continue = function () {
-    this.incrPlayer()
-    this.players[this.currentPlayer].startTurn(this)
-  }
+    this.incrPlayer();
+    this.players[this.currentPlayer].startTurn(this);
+  };
 
   // adding a player:
   this.addPlayer = function (socket, name) {
@@ -70,27 +70,41 @@ Game = function () {
     return true;
   };
 
+  /*
+  DEPRECATED
+
   this.getPlayerByCardID = function (id) {
     for (let p = 0; p < this.players.length; p++) {
-      const player = this.players[p]
+      const player = this.players[p];
       for (let s = 0; s < player.property.length; s++) {
         const street = player.property[s];
         for (let c = 0; c < street.cards.length; c++) {
           const card = street[c];
-          if (card.id = id) return player;
+          if ((card.id = id)) return player;
         }
       }
     }
-  }
+  };
+  */
 
   this.getPlayerBySocket = function (socketID) {
     for (let p = 0; p < this.players.length; p++) {
       if (socketID === this.players[p].id) {
-        return this.players[p];        
-      }      
+        return this.players[p];
+      }
     }
-    return "socket id does not match any player id"
-  }
+    return "socket id does not match any player id";
+  };
+
+  // gets game position of player from relative position to another player
+  this.getPlayerByRelPos = function (player, position) {
+    const sum = player.position + Number(position);
+    if (sum > this.players.length - 1) {
+      return this.players[sum - this.players.length];
+    } else {
+      return this.players[sum];
+    }
+  };
 
   // gets deck public data
   this.getDeckPublicData = function () {
@@ -117,16 +131,6 @@ Game = function () {
     return lobby;
   };
 
-  // gets game position of player from relative position to another player
-  this.getPlayerByRelPos = function (player, position) {
-    const sum = player.position + Number(position);
-    if (sum > this.players.length - 1) {
-      return this.players[sum - this.players.length];
-    } else {
-      return this.players[sum];
-    }
-  };
-
   // Gives repositioned/rotated array indexes, relative to given starting index
   this.positionRelative = function (arraylength, index) {
     const pRange = [...Array(arraylength).keys()];
@@ -141,18 +145,24 @@ Game = function () {
     } else {
       this.currentPlayer = 0;
     }
-  }
+  };
 
   // kicks a player from server
   this.kickPlayer = function (socketID) {
     //TODO
-  }
+  };
 
-  this.updateAllClients = function() {
+  this.updateAllClients = function () {
     for (let p = 0; p < this.players.length; p++) {
       this.players[p].sendAllGameData(this);
     }
-  }
+  };
+
+  this.endGame = function (player) {
+    for (let p = 0; p < this.players.length; p++) {
+      this.players[p].socket.emit("gameEnd", { winner: player.name });
+    }
+  };
 };
 
 module.exports = Game;

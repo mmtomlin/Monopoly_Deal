@@ -55,9 +55,6 @@ io.on("connection", function (socket) {
 
   // if player plays cards during turn
   socket.on("move", function (data) {
-    if (typeof data.id === "undefined") {
-      console.log(JSON.stringify(data, null, 2));
-    }
     console.log(socket.id + " has sent " + data.id);
     console.log("with options: " + JSON.stringify(data.options, null, 2));
     let player = game.getPlayerBySocket(socket.id);
@@ -68,26 +65,32 @@ io.on("connection", function (socket) {
 
   // if player moves property cards / money during turn
   socket.on("rearrange", function (data) {
-    console.log("received rearrange message of " + JSON.stringify(data,null,2));
+    console.log(
+      "received rearrange message of " + JSON.stringify(data, null, 2)
+    );
     let player = game.getPlayerBySocket(socket.id);
     if (player.position === game.currentPlayer) {
       player.rearrange(game, data);
       game.updateAllClients();
       player.continueTurn(game);
-    }    
+    }
   });
 
   // accept power
   socket.on("accept", function (data) {
-    console.log("accept received from " + socket.id + ", with option " + data.option);
+    console.log(
+      "accept received from " + socket.id + ", with option " + data.option
+    );
     let player = game.getPlayerBySocket(socket.id);
     let owedPlayer = game.players[game.currentPlayer];
     owedPlayer.waitResponse = false;
-    if (data.option !== "Accept" && !player.hasJustSayNo()) {
+    if (data.option !== "accept" && player.hasJustSayNo()) {
+      console.log("just say no played!")
       game.deck.discarded.push(player.popJustSayNo());
     } else {
       let a = owedPlayer.loadedPower;
       a.pwr(a.opts[0], a.opts[1], a.opts[2]);
+      player.cleanStreets();
     }
     owedPlayer.finishMove(game);
   });
@@ -108,8 +111,9 @@ io.on("connection", function (socket) {
     let card = player.popCardByID(data.id);
     player.moneyOwes -= card.card.value;
     owedPlayer.takeCard(card, game);
+    player.cleanStreets();
     if (player.moneyOwes > 0) {
-      socket.emit("payRequest", { amount: player.moneyOwes });
+      player.giveMoney(player.moneyOwes, game);
     }
     if (game.allDebtsPaid()) {
       owedPlayer.finishMove(game);

@@ -24,7 +24,13 @@ function Player(socket, name, position) {
 
   //
   this.startTurn = function (game) {
-    this.drawCards(game.deck, 2);
+    if (this.hand.length === 0) {
+      // draws 5 cards if none remaining in hand:
+      this.drawCards(game.deck, 5);
+    } else {
+      // draws 2 cards in normal play:
+      this.drawCards(game.deck, 2);
+    }
     this.movesRemaining = 3;
     game.updateAllClients();
     this.continueTurn(game);
@@ -33,9 +39,13 @@ function Player(socket, name, position) {
   //
   this.continueTurn = function (game) {
     console.log("sending moveRequest, " + this.movesRemaining + " moves left.");
-    this.socket.emit("moveRequest", {
-      movesRemaining: this.movesRemaining,
-    });
+    if (this.checkWinner()) {
+      game.endGame(this);
+    } else {
+      this.socket.emit("moveRequest", {
+        movesRemaining: this.movesRemaining,
+      });
+    }
   };
 
   this.finishTurn = function (game) {
@@ -93,16 +103,18 @@ function Player(socket, name, position) {
       // if power does not require request function:
     } else if (!card.card.confirm) {
       card.card.power(game, this, options);
+      game.deck.discarded.push(card);
       // if power requires confirmation from target player:
     } else {
       console.log("debug: waiting for response from victim");
       this.loadedPower = {
         pwr: card.card.power,
-        opts: [this, game, options],
+        opts: [game, this, options],
       };
       this.waitResponse = true;
       const victim = game.getPlayerByRelPos(this, options.victim);
       victim.getConsent(card);
+      game.deck.discarded.push(card);
       return;
     }
     this.finishMove(game);
@@ -114,7 +126,7 @@ function Player(socket, name, position) {
 
   this.popJustSayNo = function () {
     for (let c = 0; c < this.hand.length; c++) {
-      if (this.hand[c].cardType === "JustSayNo") {
+      if (this.hand[c].cardType === "justSayNo") {
         return this.hand.splice(c, 1)[0];
       }
     }
@@ -174,14 +186,19 @@ function Player(socket, name, position) {
     if (typeof data.prop !== "undefined") {
       const card = this.popPropCardByID(data.prop.cardID);
       if (data.prop.streetID === "street-new") {
-        const street = new Street(card, game);
-        this.property.push(street);
-        this.cleanStreets();
+        if (!data.prop.cardType === "propB") {
+          const street = new Street(card, game);
+          this.property.push(street);
+          this.cleanStreets();
+        } else {
+          this.addCardToProp(card);
+        }
       } else {
         const street = this.getStreetByID(data.prop.streetID);
         if (
           card.cardType === "propAny" ||
-          (card.cardType === "prop" && card.card.colour === street.colour)
+          card.cardType === "prop" ||
+          ("propWC" && card.card.colour === street.colour)
         ) {
           street.cards.push(card);
         } else if (
@@ -215,12 +232,22 @@ function Player(socket, name, position) {
     console.log("street not found");
   };
 
+  this.popStreetByID = function (streetID) {
+    for (let s = 0; s < this.property.length; s++) {
+      const street = this.property[s];
+      if (street.streetID === streetID) {
+        return this.property.splice(s,1)[0];
+      };
+    }
+    console.log("street not found");
+  }
+
   this.cleanStreets = function () {
     for (let s = 0; s < this.property.length; s++) {
-      const street= this.property[s];
-      if (street.cards.length === 0) this.property.splice(s,1);
+      const street = this.property[s];
+      if (street.cards.length === 0) this.property.splice(s, 1);
     }
-  }
+  };
 
   /*
       ACTIONS ON OTHER PLAYERS
@@ -228,10 +255,12 @@ function Player(socket, name, position) {
 
   // charges all other players a set amount
   this.chargeOthers = function (amount, game) {
-    for (let p = 0; p < game.players.length; p++) {
-      const player = game.players[p];
-      if (player.id !== this.id) {
-        player.giveMoney(amount, game);
+    if (amount > 0) {
+      for (let p = 0; p < game.players.length; p++) {
+        const player = game.players[p];
+        if (player.id !== this.id) {
+          player.giveMoney(amount, game);
+        }
       }
     }
   };
@@ -288,18 +317,21 @@ function Player(socket, name, position) {
       EMITS
   */
 
-  //
   this.giveMoney = function (amount, game) {
-    // if player has no cards to give:
-    if (this.property.length === 0 && this.money.length === 0) {
+    if (
+      // if player has cards to give && owes more than 0:
+      (this.property.length > 0 || this.money.length > 0) &&
+      (amount > 0 || this.moneyOwes > 0)
+    ) {
+      // if player already owes cash, this is a repeat, moneyOwes is incremented only on first call of this function
+      if (this.moneyOwes === 0) this.moneyOwes += amount;
+      console.log("sending payRequest");
+      this.socket.emit("payRequest", { amount: amount });
+    } else {
       this.moneyOwes = 0;
       if (game.allDebtsPaid()) {
         game.players[game.currentPlayer].finishMove(game);
       }
-    } else {
-      this.moneyOwes += amount;
-      console.log("sending payRequest");
-      this.socket.emit("payRequest", { amount: amount });
     }
   };
 
@@ -312,7 +344,7 @@ function Player(socket, name, position) {
   // get consent before accepting steal etc. (gives opotunity for just say no)
   this.getConsent = function (card) {
     let options = ["accept"];
-    if (this.hasJustSayNo) options.push("just say no");
+    if (this.hasJustSayNo()) options.push("just say no");
     console.log("sending acceptRequest");
     this.socket.emit("acceptRequest", { name: card.name, options: options });
   };
@@ -412,6 +444,15 @@ function Player(socket, name, position) {
       }
     }
     return rentAmount;
+  };
+
+  this.checkWinner = function () {
+    let completeStreets = 0;
+    for (let s = 0; s < this.property.length; s++) {
+      if (this.property[s].complete) completeStreets++;
+    }
+    if (completeStreets > 2) return true;
+    return false;
   };
 }
 

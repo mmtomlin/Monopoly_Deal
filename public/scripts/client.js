@@ -77,7 +77,8 @@ function enableRearrange() {
 // start move:
 function activateMove(remaining) {
   console.log("move : " + remaining);
-  if (remaining === 3) {
+  if (isMove === false) {
+    isMove = true;
     const alertString =
       "Your turn, you have " + remaining + " moves remaining.";
     optAlert(alertString);
@@ -88,6 +89,7 @@ function activateMove(remaining) {
       $(".hand-card").removeClass("selection-highlight");
       $("#btn-end-turn").removeClass("selection-highlight");
       socket.emit("endTurn");
+      isMove = false;
     });
   }
   $("#moves").html(remaining);
@@ -120,9 +122,9 @@ function activateMove(remaining) {
 // get player to choose whether to play the card as cash:
 function chooseIfCash(card, callback) {
   $("#options-popup").css("display", "inline-block");
-  $("#options-heading").append("<p>Play card as cash?</p>");
+  $("#options-heading").append("<p>Play card as?</p>");
   $("#options-options").append(
-    "<div id='yes-btn' class='options-button'><p>Yes</p></div>"
+    "<div id='yes-btn' class='options-button'><p>Cash</p></div>"
   );
   $("#yes-btn").click(function () {
     console.log("card: " + JSON.stringify(card, null, 2));
@@ -132,7 +134,7 @@ function chooseIfCash(card, callback) {
     closeOptions();
   });
   $("#options-options").append(
-    "<div id='no-btn' class='options-button'><p>No</p></div>"
+    "<div id='no-btn' class='options-button'><p>Action</p></div>"
   );
   $("#no-btn").click(function () {
     closeOptions();
@@ -211,6 +213,8 @@ function playCard(cardID) {
           options: { playAsCash: false, victim: victim, streetID: streetID },
         });
         waitGameData = true;
+        $(".street").unbind();
+        $(".street").removeClass("selection-highlight");
         closeOptions();
       });
     });
@@ -286,7 +290,7 @@ function playCard(cardID) {
 function hasCompleteStreet() {
   let property = clientGameData.playerData[0].property;
   for (let s = 0; s < property.length; s++) {
-    if (property.complete === true) return true;
+    if (property[s].complete === true) return true;
   }
   return false;
 }
@@ -369,7 +373,7 @@ function pickSwapCard(callback) {
   }
 }
 
-// pick victim for rentAll, dealbreaker:
+// pick victim for rentAny, debt collector:
 function pickVictim(callback) {
   $(".mcard").removeClass("selection-highlight");
   $(".mcard").unbind();
@@ -409,7 +413,7 @@ function chooseDiscard(excessCards) {
   $(".mcard").unbind();
 
   optAlert("You have too many cards, choose one to discard");
-  $(".mcard").addClass("selection-highlight");
+  $(".hand-card").addClass("selection-highlight");
   $(".hand-card").click(function () {
     socket.emit("discard", { id: $(this).attr("id") });
     $(".mcard").unbind();
@@ -450,6 +454,7 @@ closeOptions = function () {
 
 // chose money card to pay current player:
 function chooseValueCard(owed) {
+  $(".mcard").unbind();
   optAlert("you owe " + owed + " please choose a card");
   const payCards = [];
   const money = clientGameData.playerData[0].money;
@@ -484,13 +489,13 @@ function chooseAccept(options) {
   for (let i = 0; i < options.length; i++) {
     const option = options[i];
     $("#options-options").append(
-      "<div id='" +
-        option +
+      "<button id='" +
+        option.replace(/\s/g, "") +
         "-opt-btn' class='options-button'>" +
         option +
-        "</div>"
+        "</button>"
     );
-    $("#" + option + "-opt-btn").click(function () {
+    $("#" + option.replace(/\s/g, "") + "-opt-btn").click(function () {
       socket.emit("accept", { option: option });
       closeOptions();
     });
@@ -536,7 +541,7 @@ function updateProperty(user, data) {
     // loops over properties in street:
     for (let c = 0; c < street.cards.length; c++) {
       const card = street.cards[c];
-      console.log(JSON.stringify(card,null,2));
+      console.log(JSON.stringify(card, null, 2));
       $("#street-" + streetID).append(
         "<div class='card-parent'><div id='" +
           card.id +
@@ -549,6 +554,14 @@ function updateProperty(user, data) {
       }
     }
   }
+  $(".player0>.street>.card-parent>.mcard").hover(
+    function () {
+      $(this).addClass("z-index-1");
+    },
+    function () {
+      $(this).removeClass("z-index-1");
+    }
+  );
 }
 
 // updates money, handcards
@@ -596,6 +609,14 @@ function updateMoney(player, data) {
     }
     // TODO - UPDATE PLAYER HANDS
   }
+  $(".money-container.player0").hover(
+    function () {
+      $(".player0>.money-parent").addClass("money-parent-container-hover");
+    },
+    function () {
+      $(".player0>money-parent").removeClass("money-parent-container-hover");
+    }
+  );
 }
 
 // updates deck
@@ -611,7 +632,7 @@ function updateDeck(data) {
     }
   }
   if (data.discardedCount !== 0) {
-    for (let c = 0; c < data.discardedCount; c++) {
+    for (let c = 0; c < data.discardedCount - 1; c++) {
       $("#discard-pile").append(
         "<div class=deck-card-parent><div class='mcard'></div></div>"
       );
@@ -665,6 +686,7 @@ var waitGameData = false;
 const uTime = 200;
 var clientGameData = {};
 var draggedItem = null;
+var isMove = false;
 
 // Login:
 var loginNameInput = $("#name");
@@ -755,4 +777,8 @@ socket.on("acceptRequest", function (data) {
     console.log("received acceptRequest");
     chooseAccept(data.options);
   }, uTime);
+});
+
+socket.on("gameEnd", function (data) {
+  optAlert(data.winner + " is the winner!!");
 });
