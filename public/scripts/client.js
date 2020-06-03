@@ -53,7 +53,7 @@ function enableRearrange() {
       socket.emit("rearrange", {
         prop: {
           cardID: cardID,
-          streetID: streetID,
+          streetID: streetID.substring(7),
         },
       });
     });
@@ -127,7 +127,6 @@ function chooseIfCash(card, callback) {
     "<div id='yes-btn' class='options-button'><p>Cash</p></div>"
   );
   $("#yes-btn").click(function () {
-    console.log("card: " + JSON.stringify(card, null, 2));
     console.log("sending move with cardid " + card.id);
     socket.emit("move", { id: card.id, options: { playAsCash: true } });
     waitGameData = true;
@@ -142,7 +141,7 @@ function chooseIfCash(card, callback) {
   });
 }
 
-function playCard(cardID) {
+function playCard(cardID, canPlayJustSayNo) {
   const hand = clientGameData.playerData[0].hand;
   let card = {};
   for (let c = 0; c < hand.length; c++) {
@@ -212,6 +211,7 @@ function playCard(cardID) {
           id: card.id,
           options: { playAsCash: false, victim: victim, streetID: streetID },
         });
+        console.log("sending streetID: " + streetID);
         waitGameData = true;
         $(".street").unbind();
         $(".street").removeClass("selection-highlight");
@@ -279,6 +279,20 @@ function playCard(cardID) {
         options: { playAsCash: false },
       });
     });
+  } else if (card.cardType === "justSayNo") {
+    if (canPlayJustSayNo) {
+      chooseIfCash(card, function () {
+        socket.emit("move", {
+          id: card.id,
+          options: { playAsCash: false },
+        });
+      });
+    } else {
+      socket.emit("move", {
+        id: card.id,
+        options: { playAsCash: true },
+      });
+    }
   } else {
     socket.emit("move", {
       id: card.id,
@@ -343,8 +357,8 @@ function pickCard(callback) {
           const card = street.cards[c];
           $("#" + card.id).addClass("selection-highlight");
           $("#" + card.id).click(function () {
-            $("#" + card.id).unbind();
-            $("#" + card.id).removeClass("selection-highlight");
+            $(".mcard").unbind();
+            $(".mcard").removeClass("selection-highlight");
             callback(p, card.id);
           });
         }
@@ -365,8 +379,8 @@ function pickSwapCard(callback) {
       const card = street.cards[c];
       $("#" + card.id).addClass("selection-highlight");
       $("#" + card.id).click(function () {
-        $("#" + card.id).unbind();
-        $("#" + card.id).removeClass("selection-highlight");
+        $(".mcard").unbind();
+        $(".mcard").removeClass("selection-highlight");
         callback(card.id);
       });
     }
@@ -399,6 +413,7 @@ function pickStreet(callback) {
       if (street.complete) {
         $("#street-" + street.streetID).addClass("selection-highlight");
         $("#street-" + street.streetID).click(function () {
+          console.log("street ID = " + street.streetID);
           callback(p, street.streetID);
         });
       }
@@ -479,6 +494,18 @@ function chooseValueCard(owed) {
       });
     }
   }
+  const hand = clientGameData.playerData[0].hand.length;
+  for (let c = 0; c < hand.length; c++) {
+    const card = hand[c];
+    if (card.cardType === "justSayNo") {
+      $("#" + card.id).addClass("selection-highlight");
+      $("#" + card.id).click(function () {
+        $("#" + card.id).unbind();
+        $("#" + card.id).css("display", "none");
+        socket.emit("pay", { justSayNo: card.id });
+      });
+    }
+  }
 }
 
 // TO DO - tell player what has been played
@@ -541,7 +568,6 @@ function updateProperty(user, data) {
     // loops over properties in street:
     for (let c = 0; c < street.cards.length; c++) {
       const card = street.cards[c];
-      console.log(JSON.stringify(card, null, 2));
       $("#street-" + streetID).append(
         "<div class='card-parent'><div id='" +
           card.id +

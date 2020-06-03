@@ -85,8 +85,9 @@ io.on("connection", function (socket) {
     let owedPlayer = game.players[game.currentPlayer];
     owedPlayer.waitResponse = false;
     if (data.option !== "accept" && player.hasJustSayNo()) {
-      console.log("just say no played!")
+      console.log("just say no played!");
       game.deck.discarded.push(player.popJustSayNo());
+      owedPlayer.canPlayJustSayNo = true;
     } else {
       let a = owedPlayer.loadedPower;
       a.pwr(a.opts[0], a.opts[1], a.opts[2]);
@@ -108,12 +109,22 @@ io.on("connection", function (socket) {
     console.log(socket.id + " paying with " + data.id);
     let player = game.getPlayerBySocket(socket.id);
     let owedPlayer = game.players[game.currentPlayer];
-    let card = player.popCardByID(data.id);
-    player.moneyOwes -= card.card.value;
-    owedPlayer.takeCard(card, game);
-    player.cleanStreets();
-    if (player.moneyOwes > 0) {
-      player.giveMoney(player.moneyOwes, game);
+    if (typeof(data.justSayNo) !== "undefined") {
+      game.deck.discarded.push(player.popJustSayNo());
+      console.log("just say no played!");
+      player.moneyOwes = 0;
+    } else {
+      let card = player.popCardByID(data.id);
+      console.log("player owes " + player.moneyOwes);
+      console.log("card value: " + card.card.value);
+      player.moneyOwes -= card.card.value;
+      owedPlayer.takeCard(card, game);
+      player.cleanStreets();
+      if (player.moneyOwes > 0) {
+        player.giveMoney(player.moneyOwes, game);
+      } else {
+        player.moneyOwes = 0;
+      }
     }
     if (game.allDebtsPaid()) {
       owedPlayer.finishMove(game);

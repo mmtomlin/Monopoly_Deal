@@ -42,6 +42,7 @@ Game = function () {
         return false;
       }
     }
+    console.log("all debts paid!")
     return true;
   };
 

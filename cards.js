@@ -41,7 +41,8 @@ passGo = function (game, player, options) {
 // options object = {playAsCash: (true/false), victim: (victim position), colourPlayed: (colour) }
 rentAny = function (game, player, options) {
     const victim = game.getPlayerByRelPos(player, options.victim);
-    const charge = player.getRentAmountByColour(options.colourPlayed);
+    const charge = player.getRentAmountByColour(options.colourPlayed) * player.rentMultiplier;
+    player.rentMultiplier = 1;
     player.chargeOther(charge, victim);
 }
 
