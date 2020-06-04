@@ -23,19 +23,17 @@
           src="images/jail-clipart-monopoly-jail-12.png"
           alt="Main in jail"
         />
-        <h2>Lockdown edition</h2>
-        <h4>enter name:</h4>
-        <input type="text" name="name" id="name" />
-        <button id="login-button">start</button>
+        <h2>LOCKDOWN EDITION</h2>
+        <input class="login-name-input" type="text" name="name" id="name" placeholder="Enter name"/>
+        <button class="login-button" id="login-button">START</button>
       </div>
     </div>
 
     <!-- lobby -->
     <div class="outer-container lobby">
       <div id="lobby-overlay" class="container">
-        <ul id="lobby-list">
-        </ul>
-        <button id="ready-button">READY</button>
+        <div id="lobby-list">
+        </div>
       </div>
     </div>
 
@@ -43,31 +41,41 @@
     <div class="outer-container game">
       <div id="game-container" class="container">
         <div id="deck">
-          <div id="card-pile"></div>
-          <div id="discard-pile"></div>
+          <div id="card-pile" class="pile"></div>
+          <div id="discard-pile" class="pile"></div>
         </div>
         <div class="player-area player0">
-          <div class="player-name player0"></div>
+          <div class="player-details-parent">
+            <div class="player-details player0"></div>
+          </div>
           <div class="property-container player0"></div>
           <div class="money-container player0"></div>
         </div>
         <div class="player-area player1">
-          <div class="player-name player1"></div>
+          <div class="player-details-parent">
+            <div class="player-details player1"></div>
+          </div>
           <div class="property-container player1"></div>
           <div class="money-container player1"></div>
         </div>
         <div class="player-area player2">
-          <div class="player-name player2"></div>
+          <div class="player-details-parent">
+            <div class="player-details player2"></div>
+          </div>
           <div class="property-container player2"></div>
           <div class="money-container player2"></div>
         </div>
         <div class="player-area player3">
-          <div class="player-name player3"></div>
+          <div class="player-details-parent">
+            <div class="player-details player3"></div>
+          </div>
           <div class="property-container player3"></div>
           <div class="money-container player3"></div>
         </div>
         <div class="player-area player4">
-          <div class="player-name player4"></div>
+          <div class="player-details-parent">
+            <div class="player-details player4"></div>
+          </div>
           <div class="property-container player4"></div>
           <div class="money-container player4"></div>
         </div>

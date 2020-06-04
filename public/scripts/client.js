@@ -539,6 +539,7 @@ updateAllGameData = function (gameData) {
   const playerData = gameData.playerData;
   const tableData = gameData.tableData;
   const playerCount = playerData.length;
+  $(".player-area").addClass("p" + playerData.length);
   for (let p = 0; p < playerCount; p++) {
     updateProperty(p, playerData[p].property);
     updateMoney(p, playerData[p].money);
@@ -549,7 +550,9 @@ updateAllGameData = function (gameData) {
 };
 
 function updateName(player, name) {
-  $(".player-name.player" + player).html(name);
+  $(".player-details.player" + player).html(
+    '<div class="avatar"></div><div class="player-name">' + name + "</div>"
+  );
 }
 
 // updates property
@@ -586,6 +589,32 @@ function updateProperty(user, data) {
     },
     function () {
       $(this).removeClass("z-index-1");
+    }
+  );
+  // hovers
+  $(".player-area.player" + user).hover(
+    function () {
+      $(".player-area.player" + user).addClass("wide-player-area");
+      $(".player" + user + ">.street").addClass("medium-street");
+      $(".property-container.player" + user).addClass(
+        "property-container-wide"
+      );
+      $(".player" + user + ">.street>.card-parent>.mcard").addClass(
+        "medium-mcard"
+      );
+      $(".player" + user + ">.money-parent>.mcard").addClass("medium-mcard");
+    },
+    function () {
+      $(this).removeClass("wide-player-area");
+      $(".player-area.player" + user).removeClass("wide-player-area");
+      $(".player" + user + ">.street").removeClass("medium-street");
+      $(".property-container.player" + user).removeClass(
+        "property-container-wide"
+      );
+      $(".player" + user + ">.street>.card-parent>.mcard").removeClass(
+        "medium-mcard"
+      );
+      $(".player" + user + ">.money-parent>.mcard").removeClass("medium-mcard");
     }
   );
 }
@@ -693,12 +722,33 @@ function updateLobby(data) {
   $("#lobby-list").empty();
   for (let i = 0; i < data.players.length; i++) {
     const player = data.players[i];
+    $("#lobby-list").append(
+      "<div class='lobby-li player" +
+        i +
+        "'> <div class='avatar player" +
+        i +
+        "'></div> <span class='lobby-name'> </span> <span class='lobby-wait'> </span> </div>"
+    );
+    $(".player" + i + ">.lobby-name").html(player.name);
     if (player.ready) {
-      var ready = "ready";
-    } else {
-      var ready = "waiting";
+      $(".player" + i + ">.lobby-wait").html("READY");
+      $(".lobby-li.player" + i).css(
+        "background-color",
+        "rgba(250, 100, 200, 0.9)"
+      );
+    } else if (!player.ready && i != data.position) {
+      $(".player" + i + ">.lobby-wait").html("WAITING");
     }
-    $("#lobby-list").append("<li> " + player.name + " : " + ready + " </li>");
+    if (i == data.position) {
+      $(".player" + i + ">.lobby-wait").addClass("ready-button");
+      if (!player.ready) {
+        $(".player" + i + ">.lobby-wait").html("READY?");
+      }
+    }
+    $(".ready-button").unbind();
+    $(".ready-button").on("click", function () {
+      socket.emit("ready", {});
+    });
   }
 }
 
@@ -721,11 +771,6 @@ loginBtn.on("click", function () {
   socket.emit("name", { name: loginNameInput.val() });
   $(".outer-container.login").css("display", "none");
   $(".outer-container.lobby").css("display", "inline-block");
-});
-
-var readyButton = $("#ready-button");
-readyButton.on("click", function () {
-  socket.emit("ready", { ready: true });
 });
 
 /*

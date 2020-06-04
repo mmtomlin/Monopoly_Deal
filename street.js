@@ -14,7 +14,7 @@ function Street(card, game) {
     green: [2, 4, 7],
     lblue: [1, 2, 3],
     orange: [1, 3, 5],
-    purple: [1, 2, 4],
+    pink: [1, 2, 4],
     rail: [1, 2, 3, 4],
     red: [2, 3, 6],
     utility: [1, 2],

@@ -80,10 +80,10 @@ exports.CARDS = {
       name: "prop-orange-",
     },
     {
-      colour: "purple",
+      colour: "pink",
       numberof: 3,
       value: 2,
-      name: "prop-purple-",
+      name: "prop-pink-",
     },
     {
       colour: "rail",
@@ -130,8 +130,8 @@ exports.CARDS = {
       colour: "orange",
       numberof: 1,
       value: 2,
-      reverseColour: "purple",
-      name: "prop-wc-orange-purple",
+      reverseColour: "pink",
+      name: "prop-wc-orange-pink",
     },
     {
       colour: "green",
@@ -150,7 +150,7 @@ exports.CARDS = {
     {
       colour: "utility",
       numberof: 1,
-      value: 4,
+      value: 2,
       reverseColour: "rail",
       name: "prop-wc-utility-rail",
     },
@@ -166,14 +166,14 @@ exports.CARDS = {
     {
       colour: "any",
       name: "house",
-      value: 4,
+      value: 3,
       numberof: 3,
       rent: 4,
     },
     {
       colour: "any",
       name: "hotel",
-      value: 3,
+      value: 4,
       numberof: 3,
       rent: 4,
     },

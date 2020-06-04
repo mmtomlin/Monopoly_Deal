@@ -19,6 +19,14 @@ function Player(socket, name, position) {
   this.waitResponse = false; // waiting for a response from this player
   this.canPlayJustSayNo = false;
 
+  this.sendLobbyData = function (game) {
+    this.socket.emit("gameStatus", {
+      gameStarted: game.gameStarted,
+      players: game.getLobbyData(),
+      position: this.position,
+    });
+  };
+
   /* 
       PLAYER TURN LOGIC:
   */

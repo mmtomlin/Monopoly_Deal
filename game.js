@@ -14,6 +14,12 @@ Game = function () {
   this.streetCounter = 0;
   this.currentPlayer = 0;
 
+  this.sendLobbyData = function () {
+    for (let p = 0; p < this.players.length; p++) {
+      this.players[p].sendLobbyData(this);
+    }
+  }
+
   this.startGame = function () {
     this.players = shuffle(this.players);
     this.deck = new Deck();
@@ -54,7 +60,7 @@ Game = function () {
 
   // adding a player:
   this.addPlayer = function (socket, name) {
-    // TODO - add check for if same name exists.
+    //initial position (gets changed after game start) 
     const position = this.players.length;
     if (!this.gameStarted && position < 6) {
       this.players.push(new Player(socket, name, position));

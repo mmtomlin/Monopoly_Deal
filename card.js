@@ -8,6 +8,7 @@ function Card(cardType, creatorObject, id) {
 
   if (this.cardType === "rent") {
     this.card.power = getRent;
+    this.card.value = 1;
   }
 
   // options object = {playAsCash: (true/false), colourPlayed: (colour) }

@@ -4,6 +4,7 @@ const socketio = require("socket.io");
 const Game = require(__dirname + "/game.js");
 const shuffle = require(__dirname + "/shuffle.js");
 
+/* deprecated - moving to player based game status, 
 sendGameStatus = function (game) {
   console.log("emitting game status");
   io.emit("gameStatus", {
@@ -11,6 +12,7 @@ sendGameStatus = function (game) {
     players: game.getLobbyData(),
   });
 };
+*/
 
 // Game start
 console.log("starting new game");
@@ -38,19 +40,19 @@ io.on("connection", function (socket) {
   socket.on("name", function (data) {
     game.addPlayer(socket, data.name);
     console.log("Added player: " + data.name);
-    sendGameStatus(game);
+    game.sendLobbyData();
   });
 
   // Check if players are ready, if they are, start game
   socket.on("ready", function () {
     console.log("received ready message from " + socket.id);
     var player = game.getPlayerBySocket(socket.id);
-    player.isReady = true;
+    player.isReady = !player.isReady;
     if (game.players.length > 1 && game.allPlayersReady()) {
       game.startGame();
       game.updateAllClients();
     }
-    sendGameStatus(game);
+    game.sendLobbyData();
   });
 
   // if player plays cards during turn
