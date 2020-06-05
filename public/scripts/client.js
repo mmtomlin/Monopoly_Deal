@@ -817,7 +817,7 @@ function updateLobby(data) {
 */
 
 // connect to socket
-var socket = io.connect("http://localhost:4000");
+var socket = io.connect(window.location.hostname);
 var waitGameData = false;
 const uTime = 200;
 var clientGameData = {};
