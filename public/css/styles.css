@@ -34,7 +34,7 @@ h4 {
   border: solid #ea3a00 2px;
   padding: 10px;
   text-align: center;
-  background: rgba(255, 255, 200, 0.92);
+  background: rgba(255, 255, 200, 0.95);
 }
 
 .outer-container {
@@ -112,7 +112,7 @@ h4 {
 #options-options {
   display: flex;
   flex-wrap: wrap;
-  max-width: 300px;
+  justify-content: center;
 }
 
 .jailman {
@@ -128,11 +128,12 @@ h4 {
 .login-name-input {
   border: solid black 2px;
   margin-bottom: -2px;
-  width: 252px;
+  width: 256px;
   border-top-left-radius: 5px;
   border-top-right-radius: 5px;
   text-align: center;
   font-family: "ITCKabelStd-Book", "Cabin", sans-serif;
+  height: 20px;
 }
 
 .login-button {
@@ -158,7 +159,8 @@ h4 {
   justify-content: center;
   align-items: center;
   font-family: "ITCKabelStd-Demi", "Cabin", sans-serif;
-  font-size: 1.8rem;
+  font-size: 1.5rem;
+  padding: 3px;
 }
 
 .ready-button {
@@ -365,8 +367,8 @@ h4 {
 #street-new {
   position: relative;
   display: inline-block;
-  width: 50px;
-  height: 80px;
+  width: 80px;
+  height: 128px;
   background-color: rgba(80, 184, 170, 0.5);
   border-radius: 3px;
   opacity: 50%;
@@ -440,7 +442,7 @@ h4 {
   box-shadow: 0px 0px 11px 0px rgba(0, 209, 192, 1);
 }
 
-#message-box {
+.message-box {
   width: 100px; 
   min-height: 50px;
   max-height: 400px;
@@ -502,7 +504,7 @@ h4 {
   background-image: url(../images/flip.png);
   position: absolute;
   top: 0px;
-  left: 0px;
+  right: 0px;
   width: 30px;
   height: 30px;
   background-position: center, center;
@@ -517,7 +519,7 @@ h4 {
   top: auto;
   left: auto;
   bottom: 0px;
-  right: 0px;
+  left: 0px;
 }
 
 .z-index-1 {
@@ -528,13 +530,65 @@ h4 {
   display: flex;
   flex-wrap: wrap;
   flex-direction: row;
+  justify-content: center;
+  padding: 10px;
 }
 
 #card-popup {
   display: flex;
   flex-direction: column;
   position: absolute;
-  top: -200px;
+  justify-content: center;
+  top: -100px;
+  right: -75px;
   border: solid black 1px;
-  background-color: white;
+  border-radius: 15px;
+  background-color: rgb(252, 252, 250);
+  width: 250px;
+}
+
+.colour-option {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+}
+
+.dblue {
+  background-color: rgb(0, 0, 160);
+}
+
+.lblue {
+  background-color: rgb(145, 193, 224);
+}
+
+.red {
+background-color: rgb(209, 42, 42);
+}
+
+.pink {
+  background-color: rgb(250, 100, 200);
+}
+
+.yellow {
+  background-color: yellow;
+}
+
+.rail {
+ background-color: black;
+}
+
+.utility {
+ background-color: rgb(173, 216, 198);
+}
+
+.brown {
+ background-color: rgb(116, 46, 46);
+}
+
+.green {
+  background-color: green;
+}
+
+.orange {
+  background-color: orange;
 }

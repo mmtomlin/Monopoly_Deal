@@ -93,14 +93,16 @@ function activateMove() {
     "Your turn, you have " + movesRemaining + " moves left."
   );
   $("#message-button").html("END MOVE");
-  $("#message-box").css("display", "flex");
+  $(".message-box").css("display", "flex");
+  $(".message-box").addClass("pink");
   $("#message-button").click(function () {
-    $("#message-box").css("display", "none");
+    $(".message-box").css("display", "none");
     $("#message-button").unbind();
     $(".hand-card").removeClass("selection-highlight");
     $("#message-button").removeClass("selection-highlight");
     socket.emit("endTurn");
     isMove = false;
+    $(".message-box").removeClass("pink");
   });
 
   $("#moves").html(movesRemaining);
@@ -122,7 +124,6 @@ function activateMove() {
       console.log("card picked: " + cardID);
       playCard(cardID);
       waitGameData = true;
-      $(this).fadeTo(500, 0.5); //isn't working?
     });
   } else if (movesRemaining === 0) {
     $(".hand-card").removeClass("selection-highlight");
@@ -132,6 +133,7 @@ function activateMove() {
 
 // get player to choose whether to play the card as cash:
 function chooseIfCash(card, callback) {
+  showCancelButton();
   $("#" + card.id).append("<div id='card-popup'><p>Play card as?</p></div>");
   $("#card-popup").append(
     "<div class=options><div id='yes-btn' class='options-button'><p>Cash</p></div></div>"
@@ -151,7 +153,7 @@ function chooseIfCash(card, callback) {
   });
 }
 
-function playCard(cardID, canPlayJustSayNo) {
+function playCard(cardID) {
   const hand = clientGameData.playerData[0].hand;
   let card = {};
   for (let c = 0; c < hand.length; c++) {
@@ -190,6 +192,7 @@ function playCard(cardID, canPlayJustSayNo) {
             options: { playAsCash: false, colourPlayed: colour },
           });
           waitGameData = true;
+          optAlert("waiting for rent to be paid");
           closeOptions();
         });
         $("#options-popup").css("display", "inline-block");
@@ -199,7 +202,7 @@ function playCard(cardID, canPlayJustSayNo) {
     // options object = {playAsCash: (true/false), victim: (victim position), colourPlayed: (colour) }
     chooseIfCash(card, function () {
       pickVictim(function (victim) {
-        pickAnyColour(function (colour) {
+        pickAnyColour(card, function (colour) {
           socket.emit("move", {
             id: card.id,
             options: {
@@ -209,6 +212,7 @@ function playCard(cardID, canPlayJustSayNo) {
             },
           });
           waitGameData = true;
+          optAlert("waiting for rent to be paid");
           closeOptions();
         });
       });
@@ -223,6 +227,9 @@ function playCard(cardID, canPlayJustSayNo) {
         });
         console.log("sending streetID: " + streetID);
         waitGameData = true;
+        optAlert(
+          "waiting for response from " + clientGameData.playerData[victim].name
+        );
         $(".street").unbind();
         $(".street").removeClass("selection-highlight");
         closeOptions();
@@ -241,6 +248,9 @@ function playCard(cardID, canPlayJustSayNo) {
           },
         });
         waitGameData = true;
+        optAlert(
+          "waiting for response from " + clientGameData.playerData[victim].name
+        );
         closeOptions();
       });
     });
@@ -259,6 +269,10 @@ function playCard(cardID, canPlayJustSayNo) {
             },
           });
           waitGameData = true;
+          optAlert(
+            "waiting for response from " +
+              clientGameData.playerData[victim].name
+          );
           closeOptions();
         });
       });
@@ -272,6 +286,9 @@ function playCard(cardID, canPlayJustSayNo) {
           options: { playAsCash: false, victim: victim },
         });
         waitGameData = true;
+        optAlert(
+          "waiting for response from " + clientGameData.playerData[victim].name
+        );
         closeOptions();
       });
     });
@@ -308,6 +325,7 @@ function playCard(cardID, canPlayJustSayNo) {
       id: card.id,
       options: { playAsCash: false },
     });
+    if (card.name == "its-my-birthday") optAlert("waiting for rent");
   }
 }
 
@@ -320,10 +338,11 @@ function hasCompleteStreet() {
 }
 
 // pick a colour for a "rentAny" card
-function pickAnyColour(callback) {
-  $(".mcard").removeClass("selection-highlight");
-  $(".mcard").unbind();
-  $("#options-heading").append("<p>Pick a colour</p>");
+function pickAnyColour(card, callback) {
+  showCancelButton();
+  $("#" + card.id).append(
+    "<div id='card-popup'><p>Choose colour:</p><div class='options'></div></div>"
+  );
   const colours = [
     "red",
     "dblue",
@@ -333,24 +352,17 @@ function pickAnyColour(callback) {
     "rail",
     "brown",
     "orange",
-    "purple",
+    "pink",
     "yellow",
   ];
   for (let i = 0; i < colours.length; i++) {
     const colour = colours[i];
-    $("#options-options").append(
-      "<div id='" +
-        colour +
-        "-opt-btn' class='options-button'>" +
-        colour +
-        "</div>"
-    );
-    $("#" + colour + "-opt-btn").click(function () {
+    $(".options").append("<div class='colour-option " + colour + "'></div>");
+    $(".colour-option." + colour).click(function () {
+      $("#" + card.id).empty();
       callback(colour);
-      closeOptions();
     });
   }
-  $("#options-popup").css("display", "inline-block");
 }
 
 function showCancelButton() {
@@ -364,7 +376,7 @@ function showCancelButton() {
 
 // pick a target card for slydeal / forced deal
 function pickCard(callback) {
-  $("#message-box").css("display", "flex");
+  $(".message-box").css("display", "flex");
   $("#message-text").html("Pick a card to steal");
   showCancelButton();
   $(".mcard").removeClass("selection-highlight");
@@ -390,7 +402,7 @@ function pickCard(callback) {
 
 // pick a swap card for forced deal
 function pickSwapCard(callback) {
-  $("#message-box").css("display", "flex");
+  $(".message-box").css("display", "flex");
   $("#message-text").html("Pick a card to swap");
   showCancelButton();
   $(".mcard").removeClass("selection-highlight");
@@ -412,7 +424,7 @@ function pickSwapCard(callback) {
 
 // pick victim for rentAny, debt collector:
 function pickVictim(callback) {
-  $("#message-box").css("display", "flex");
+  $(".message-box").css("display", "flex");
   $("#message-text").html("Pick a person");
   showCancelButton();
   $(".mcard").removeClass("selection-highlight");
@@ -429,7 +441,7 @@ function pickVictim(callback) {
 
 // picks a street for deal breaker:
 function pickStreet(callback) {
-  $("#message-box").css("display", "flex");
+  $(".message-box").css("display", "flex");
   $("#message-text").html("Pick a street to steal");
   showCancelButton();
   $(".mcard").removeClass("selection-highlight");
@@ -451,7 +463,7 @@ function pickStreet(callback) {
 
 // choose hand card to discard:
 function chooseDiscard(excessCards) {
-  $("#message-box").css("display", "flex");
+  $(".message-box").css("display", "flex");
   $("#message-text").html("Discard cards:");
   $("#message-button").css("display", "none");
   //these two shouldn't be needed, might take out.
@@ -475,7 +487,7 @@ function chooseDiscard(excessCards) {
 
 // creates alert with ok button
 optAlert = function (message) {
-  $("#message-box").css("display", "flex");
+  $(".message-box").css("display", "flex");
   $("#message-text").html(message);
   $("#message-button").css("display", "none");
   /*
@@ -511,13 +523,15 @@ function valueSelect(card, owed) {
     if (owed > 0) {
       chooseValueCard(owed);
     }
+    $(".message-box").removeClass("pink");
     socket.emit("pay", { id: $(this).attr("id") });
   });
 }
 
 // chose money card to pay current player:
 function chooseValueCard(owed) {
-  optAlert("You owe " + owed + " please choose a card")
+  $(".message-box").addClass("pink");
+  optAlert("You owe " + owed + " please choose a card");
   $(".mcard").unbind();
   const payCards = [];
   const money = clientGameData.playerData[0].money;
@@ -549,19 +563,22 @@ function chooseValueCard(owed) {
 
 // TO DO - tell player what has been played
 // accept or play just say no, if avaliable:
-function chooseAccept(options) {
-  $("#options-popup").css("display", "inline-block");
-  $("#options-heading").append("<p>Accept?</p>");
+function chooseAccept(options, message) {
+  $("#options-heading").empty();
+  $("#options-options").empty();
+  $("#options-heading").append("<p>" + message + "</p>");
+  $(".message-box").addClass("pink");
   for (let i = 0; i < options.length; i++) {
     const option = options[i];
     $("#options-options").append(
-      "<button id='" +
+      "<div id='" +
         option.replace(/\s/g, "") +
         "-opt-btn' class='options-button'>" +
         option +
-        "</button>"
+        "</div>"
     );
     $("#" + option.replace(/\s/g, "") + "-opt-btn").click(function () {
+      $(".message-box").removeClass("pink");
       socket.emit("accept", { option: option });
       closeOptions();
     });
@@ -587,6 +604,7 @@ updateAllGameData = function (gameData) {
   updateHand(playerData[0].hand);
   updateDeck(gameData.tableData);
   optAlert(gameData.gameMessage);
+  $(".message-box").removeClass("pink");
 };
 
 function updateName(player, name) {
@@ -634,6 +652,7 @@ function updateProperty(user, data) {
   // hovers
   $(".player-area.player" + user).hover(
     function () {
+      $(".player-area.player" + user).css("z-index", "1");
       $(".player-area.player" + user).addClass("wide-player-area");
       $(".player" + user + ">.street").addClass("medium-street");
       $(".property-container.player" + user).addClass(
@@ -645,6 +664,7 @@ function updateProperty(user, data) {
       $(".player" + user + ">.money-parent>.mcard").addClass("medium-mcard");
     },
     function () {
+      $(".player-area.player" + user).css("z-index", "0");
       $(this).removeClass("wide-player-area");
       $(".player-area.player" + user).removeClass("wide-player-area");
       $(".player" + user + ">.street").removeClass("medium-street");
@@ -804,14 +824,13 @@ var clientGameData = {};
 var draggedItem = null;
 var isMove = false;
 var movesRemaining = 0;
+var canPlayJustSayNo = false;
 
 // Login:
 var loginNameInput = $("#name");
 var loginBtn = $("#login-button");
 loginBtn.on("click", function () {
   socket.emit("name", { name: loginNameInput.val() });
-  $(".outer-container.login").css("display", "none");
-  $(".outer-container.lobby").css("display", "inline-block");
 });
 
 /*
@@ -824,6 +843,8 @@ socket.on("connection", function () {
 
 // game started message from server
 socket.on("gameStatus", function (data) {
+  $(".outer-container.login").css("display", "none");
+  $(".outer-container.lobby").css("display", "inline-block");
   console.log("received game status");
   if (data.gameStarted === true) {
     console.log("game is starting");
@@ -853,6 +874,7 @@ socket.on("moveRequest", function (data) {
     }
     console.log("activating move");
     movesRemaining = data.movesRemaining;
+    canPlayJustSayNo = data.canPlayJustSayNo;
     activateMove();
     enableRearrange();
   }, uTime);
@@ -892,7 +914,7 @@ socket.on("acceptRequest", function (data) {
   makeSound("pan-1");
   setTimeout(function () {
     console.log("received acceptRequest");
-    chooseAccept(data.options);
+    chooseAccept(data.options, data.message);
   }, uTime);
 });
 

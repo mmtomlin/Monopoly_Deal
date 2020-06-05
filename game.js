@@ -19,7 +19,7 @@ Game = function () {
     for (let p = 0; p < this.players.length; p++) {
       this.players[p].sendLobbyData(this);
     }
-  }
+  };
 
   this.startGame = function () {
     this.players = shuffle(this.players);
@@ -49,7 +49,7 @@ Game = function () {
         return false;
       }
     }
-    console.log("all debts paid!")
+    console.log("all debts paid!");
     return true;
   };
 
@@ -61,10 +61,18 @@ Game = function () {
 
   // adding a player:
   this.addPlayer = function (socket, name) {
-    //initial position (gets changed after game start) 
+    //initial position (gets changed after game start)
     const position = this.players.length;
     if (!this.gameStarted && position < 6) {
       this.players.push(new Player(socket, name, position));
+    }
+  };
+
+  this.removePlayer = function (socketID) {
+    for (let p = 0; p < this.players.length; p++) {
+      if (this.players[p].socketID === socketID) {
+        this.players.splice(p, 1);
+      }
     }
   };
 

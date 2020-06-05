@@ -91,7 +91,7 @@ function Player(socket, name, position) {
   this.playHandCard = function (id, game, options = null) {
     // get card
     let card = this.popHandCardByID(id);
-    game.gameMessage = game.gameMessage + " Card played: " + card.card.name + ".";
+    if (typeof(card) == "undefined") return;
     console.log("card played: " + card.id);
     this.movesRemaining--;
     // if card is cash, add to cash
@@ -129,8 +129,7 @@ function Player(socket, name, position) {
         victim = this.loadedPower.opts[2].victim;
       }
       this.waitResponse = true;
-      victim.getConsent(card);
-      game.gameMessage = game.gameMessage + " Waiting for response from " + victim.name + "."; 
+      victim.getConsent(card, this);
       game.deck.discarded.push(card);
       return;
     }
@@ -362,11 +361,12 @@ function Player(socket, name, position) {
   };
 
   // get consent before accepting steal etc. (gives opotunity for just say no)
-  this.getConsent = function (card) {
+  this.getConsent = function (card, player) {
     let options = ["accept"];
     if (this.hasJustSayNo()) options.push("just say no");
     console.log("sending acceptRequest");
-    this.socket.emit("acceptRequest", { name: card.name, options: options });
+    const message = player.name + " has played " + card.card.nameStr + " against you!";
+    this.socket.emit("acceptRequest", { options: options, message: message});
   };
 
   // send all game data to client

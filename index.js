@@ -22,7 +22,7 @@ game = new Game();
 // App setup
 var app = express();
 app.use(express.static(__dirname + "/public/"));
-var server = app.listen(4000, function () {
+var server = app.listen(process.env.PORT || 4000, function () {
   console.log("listening to requests on port 4000");
 });
 
@@ -38,9 +38,11 @@ io.on("connection", function (socket) {
 
   // Initialise player, send waiting status
   socket.on("name", function (data) {
-    game.addPlayer(socket, data.name);
-    console.log("Added player: " + data.name);
-    game.sendLobbyData();
+    if (!game.gameStarted) {
+      game.addPlayer(socket, data.name);
+      console.log("Added player: " + data.name);
+      game.sendLobbyData();
+    }
   });
 
   // Check if players are ready, if they are, start game
@@ -111,7 +113,7 @@ io.on("connection", function (socket) {
     console.log(socket.id + " paying with " + data.id);
     let player = game.getPlayerBySocket(socket.id);
     let owedPlayer = game.players[game.currentPlayer];
-    if (typeof(data.justSayNo) !== "undefined") {
+    if (typeof data.justSayNo !== "undefined") {
       game.deck.discarded.push(player.popJustSayNo());
       console.log("just say no played!");
       player.moneyOwes = 0;
@@ -135,4 +137,12 @@ io.on("connection", function (socket) {
     player.movesRemaining = 0;
     player.finishTurn(game);
   });
+
+  socket.on("disconnect", function () {
+    if (game.gameStarted) {
+      game = new Game();
+    } else {
+      game.removePlayer(socket.id);
+    }
+  })
 });
