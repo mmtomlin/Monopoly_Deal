@@ -1,3 +1,6 @@
-misc
-debug
-node_modules
+/misc
+/debug
+/node_modules
+npm-debug.log
+.DS_Store
+/*.env
