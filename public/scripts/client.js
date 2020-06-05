@@ -2,6 +2,12 @@
       PLAYER INPUT FUNCTIONS (DURING TURN)
 */
 
+function makeSound(soundName) {
+  // current sounds are  : meow, pan-1, bell-1, bell-2, card-1.
+  const sound = new Audio("audio/" + soundName + ".wav");
+  sound.play();
+}
+
 function enableRearrange() {
   // spin wildcards
   const property = clientGameData.playerData[0].property;
@@ -75,25 +81,30 @@ function enableRearrange() {
 }
 
 // start move:
-function activateMove(remaining) {
-  console.log("move : " + remaining);
+function activateMove() {
+  console.log("move : " + movesRemaining);
   if (isMove === false) {
     isMove = true;
-    const alertString =
-      "Your turn, you have " + remaining + " moves remaining.";
-    optAlert(alertString);
-    $("#move-box").css("display", "inline-block");
-    $("#btn-end-turn").click(function () {
-      $("#move-box").css("display", "none");
-      $("#btn-end-turn").unbind();
-      $(".hand-card").removeClass("selection-highlight");
-      $("#btn-end-turn").removeClass("selection-highlight");
-      socket.emit("endTurn");
-      isMove = false;
-    });
+    makeSound("bell-2");
   }
-  $("#moves").html(remaining);
-  if (remaining > 0) {
+  $("#message-button").unbind();
+  $("#message-button").css("display", "flex");
+  $("#message-text").html(
+    "Your turn, you have " + movesRemaining + " moves left."
+  );
+  $("#message-button").html("END MOVE");
+  $("#message-box").css("display", "flex");
+  $("#message-button").click(function () {
+    $("#message-box").css("display", "none");
+    $("#message-button").unbind();
+    $(".hand-card").removeClass("selection-highlight");
+    $("#message-button").removeClass("selection-highlight");
+    socket.emit("endTurn");
+    isMove = false;
+  });
+
+  $("#moves").html(movesRemaining);
+  if (movesRemaining > 0) {
     $(".hand-card").addClass("selection-highlight");
     // hover animation:
     $(".hand-card").hover(
@@ -113,30 +124,29 @@ function activateMove(remaining) {
       waitGameData = true;
       $(this).fadeTo(500, 0.5); //isn't working?
     });
-  } else if (remaining === 0) {
+  } else if (movesRemaining === 0) {
     $(".hand-card").removeClass("selection-highlight");
-    $("#btn-end-turn").addClass("selection-highlight");
+    $("#message-button").addClass("selection-highlight");
   }
 }
 
 // get player to choose whether to play the card as cash:
 function chooseIfCash(card, callback) {
-  $("#options-popup").css("display", "inline-block");
-  $("#options-heading").append("<p>Play card as?</p>");
-  $("#options-options").append(
-    "<div id='yes-btn' class='options-button'><p>Cash</p></div>"
+  $("#" + card.id).append("<div id='card-popup'><p>Play card as?</p></div>");
+  $("#card-popup").append(
+    "<div class=options><div id='yes-btn' class='options-button'><p>Cash</p></div></div>"
   );
   $("#yes-btn").click(function () {
     console.log("sending move with cardid " + card.id);
     socket.emit("move", { id: card.id, options: { playAsCash: true } });
     waitGameData = true;
-    closeOptions();
+    $("#" + card.id).empty();
   });
-  $("#options-options").append(
+  $(".options").append(
     "<div id='no-btn' class='options-button'><p>Action</p></div>"
   );
   $("#no-btn").click(function () {
-    closeOptions();
+    $("#" + card.id).empty();
     callback(card);
   });
 }
@@ -343,9 +353,20 @@ function pickAnyColour(callback) {
   $("#options-popup").css("display", "inline-block");
 }
 
+function showCancelButton() {
+  $("#message-button").unbind();
+  $("#message-button").css("display", "flex");
+  $("#message-button").html("Cancel");
+  $("#message-button").click(function () {
+    activateMove();
+  });
+}
+
 // pick a target card for slydeal / forced deal
 function pickCard(callback) {
-  optAlert("Pick a card to steal.");
+  $("#message-box").css("display", "flex");
+  $("#message-text").html("Pick a card to steal");
+  showCancelButton();
   $(".mcard").removeClass("selection-highlight");
   $(".mcard").unbind();
   for (let p = 1; p < clientGameData.playerData.length; p++) {
@@ -369,9 +390,11 @@ function pickCard(callback) {
 
 // pick a swap card for forced deal
 function pickSwapCard(callback) {
+  $("#message-box").css("display", "flex");
+  $("#message-text").html("Pick a card to swap");
+  showCancelButton();
   $(".mcard").removeClass("selection-highlight");
   $(".mcard").unbind();
-  optAlert("Pick a card to swap.");
   const player = clientGameData.playerData[0];
   for (let s = 0; s < player.property.length; s++) {
     const street = player.property[s];
@@ -389,13 +412,16 @@ function pickSwapCard(callback) {
 
 // pick victim for rentAny, debt collector:
 function pickVictim(callback) {
+  $("#message-box").css("display", "flex");
+  $("#message-text").html("Pick a person");
+  showCancelButton();
   $(".mcard").removeClass("selection-highlight");
   $(".mcard").unbind();
   for (let p = 1; p < clientGameData.playerData.length; p++) {
-    $(".player-name.player" + p).addClass("selection-highlight");
-    $(".player-name.player" + p).click(function () {
-      $(".player-name").unbind();
-      $(".player-name").removeClass("selection-highlight");
+    $(".player" + p + ">.avatar").addClass("selection-highlight");
+    $(".player" + p + ">.avatar").click(function () {
+      $(".avatar").unbind();
+      $(".avatar").removeClass("selection-highlight");
       callback(p);
     });
   }
@@ -403,9 +429,11 @@ function pickVictim(callback) {
 
 // picks a street for deal breaker:
 function pickStreet(callback) {
+  $("#message-box").css("display", "flex");
+  $("#message-text").html("Pick a street to steal");
+  showCancelButton();
   $(".mcard").removeClass("selection-highlight");
   $(".mcard").unbind();
-  optAlert("Pick a completed property set to steal");
   for (let p = 1; p < clientGameData.playerData.length; p++) {
     const player = clientGameData.playerData[p];
     for (let s = 0; s < player.property.length; s++) {
@@ -423,11 +451,12 @@ function pickStreet(callback) {
 
 // choose hand card to discard:
 function chooseDiscard(excessCards) {
+  $("#message-box").css("display", "flex");
+  $("#message-text").html("Discard cards:");
+  $("#message-button").css("display", "none");
   //these two shouldn't be needed, might take out.
   $(".mcard").removeClass("selection-highlight");
   $(".mcard").unbind();
-
-  optAlert("You have too many cards, choose one to discard");
   $(".hand-card").addClass("selection-highlight");
   $(".hand-card").click(function () {
     socket.emit("discard", { id: $(this).attr("id") });
@@ -446,6 +475,10 @@ function chooseDiscard(excessCards) {
 
 // creates alert with ok button
 optAlert = function (message) {
+  $("#message-box").css("display", "flex");
+  $("#message-text").html(message);
+  $("#message-button").css("display", "none");
+  /*
   $("#options-heading").append("<p>" + message + "</p>");
   $("#options-options").append(
     "<div id='ok-btn' class='options-button'><p>ok</p></div>"
@@ -454,6 +487,7 @@ optAlert = function (message) {
   $("#ok-btn").click(function () {
     closeOptions();
   });
+  */
 };
 
 // hide and clear options container:
@@ -467,33 +501,38 @@ closeOptions = function () {
       USER INPUT FUNCTIONS (NOT DURING TURN)
 */
 
+function valueSelect(card, owed) {
+  $("#" + card.id).addClass("selection-highlight");
+  $("#" + card.id).click(function () {
+    $(".mcard").unbind();
+    $(".mcard").removeClass("selection-highlight");
+    $("#" + card.id).css("display", "none");
+    owed = owed - card.card.value;
+    if (owed > 0) {
+      chooseValueCard(owed);
+    }
+    socket.emit("pay", { id: $(this).attr("id") });
+  });
+}
+
 // chose money card to pay current player:
 function chooseValueCard(owed) {
+  optAlert("You owe " + owed + " please choose a card")
   $(".mcard").unbind();
-  optAlert("you owe " + owed + " please choose a card");
   const payCards = [];
   const money = clientGameData.playerData[0].money;
   const prop = clientGameData.playerData[0].property;
   for (let c = 0; c < money.length; c++) {
-    $("#" + money[c].id).addClass("selection-highlight");
-    $("#" + money[c].id).click(function () {
-      $("#" + money[c].id).unbind();
-      $("#" + money[c].id).css("display", "none");
-      socket.emit("pay", { id: $(this).attr("id") });
-    });
+    valueSelect(money[c], owed);
   }
+
   for (let s = 0; s < prop.length; s++) {
     const street = prop[s];
     for (let c = 0; c < street.cards.length; c++) {
-      const card = street.cards[c];
-      $("#" + card.id).addClass("selection-highlight");
-      $("#" + card.id).click(function () {
-        $("#" + card.id).unbind();
-        $("#" + card.id).css("display", "none");
-        socket.emit("pay", { id: $(this).attr("id") });
-      });
+      valueSelect(street.cards[c], owed);
     }
   }
+
   const hand = clientGameData.playerData[0].hand.length;
   for (let c = 0; c < hand.length; c++) {
     const card = hand[c];
@@ -547,6 +586,7 @@ updateAllGameData = function (gameData) {
   }
   updateHand(playerData[0].hand);
   updateDeck(gameData.tableData);
+  optAlert(gameData.gameMessage);
 };
 
 function updateName(player, name) {
@@ -763,6 +803,7 @@ const uTime = 200;
 var clientGameData = {};
 var draggedItem = null;
 var isMove = false;
+var movesRemaining = 0;
 
 // Login:
 var loginNameInput = $("#name");
@@ -796,6 +837,7 @@ socket.on("gameStatus", function (data) {
 
 // game data message
 socket.on("gameData", function (gameData) {
+  makeSound("card-1");
   console.log("received gameData");
   clientGameData = gameData;
   updateAllGameData(gameData);
@@ -810,7 +852,8 @@ socket.on("moveRequest", function (data) {
       console.log("waiting");
     }
     console.log("activating move");
-    activateMove(data.movesRemaining);
+    movesRemaining = data.movesRemaining;
+    activateMove();
     enableRearrange();
   }, uTime);
 });
@@ -827,6 +870,7 @@ socket.on("getOptions", function (data) {
 
 // request to pay another player
 socket.on("payRequest", function (data) {
+  makeSound("pan-1");
   setTimeout(function () {
     console.log("received payRequest");
     while (waitGameData) {}
@@ -836,6 +880,7 @@ socket.on("payRequest", function (data) {
 
 // request to discard cards if too many in hand
 socket.on("forceDiscard", function (data) {
+  makeSound("meow");
   setTimeout(function () {
     console.log("received forceDiscard");
     chooseDiscard(data.excessCards);
@@ -844,6 +889,7 @@ socket.on("forceDiscard", function (data) {
 
 // request to accept steal from another player (or play JSN)
 socket.on("acceptRequest", function (data) {
+  makeSound("pan-1");
   setTimeout(function () {
     console.log("received acceptRequest");
     chooseAccept(data.options);

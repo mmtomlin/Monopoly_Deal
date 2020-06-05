@@ -41,6 +41,7 @@ function Player(socket, name, position) {
       this.drawCards(game.deck, 2);
     }
     this.movesRemaining = 3;
+    game.gameMessage = this.name + "'s turn, " + this.movesRemaining + " moves remaining."
     game.updateAllClients();
     this.continueTurn(game);
   };
@@ -48,6 +49,8 @@ function Player(socket, name, position) {
   //
   this.continueTurn = function (game) {
     console.log("sending moveRequest, " + this.movesRemaining + " moves left.");
+    game.gameMessage = this.name + "'s turn, " + this.movesRemaining + " moves remaining."
+    game.updateAllClients();
     if (this.checkWinner()) {
       game.endGame(this);
     } else {
@@ -88,6 +91,7 @@ function Player(socket, name, position) {
   this.playHandCard = function (id, game, options = null) {
     // get card
     let card = this.popHandCardByID(id);
+    game.gameMessage = game.gameMessage + " Card played: " + card.card.name + ".";
     console.log("card played: " + card.id);
     this.movesRemaining--;
     // if card is cash, add to cash
@@ -126,6 +130,7 @@ function Player(socket, name, position) {
       }
       this.waitResponse = true;
       victim.getConsent(card);
+      game.gameMessage = game.gameMessage + " Waiting for response from " + victim.name + "."; 
       game.deck.discarded.push(card);
       return;
     }
@@ -267,6 +272,7 @@ function Player(socket, name, position) {
 
   // charges all other players a set amount
   this.chargeOthers = function (amount, game) {
+    game.gameMessage = game.gameMessage + (", rent amount is " + amount)
     if (amount > 0) {
       for (let p = 0; p < game.players.length; p++) {
         const player = game.players[p];
@@ -278,7 +284,8 @@ function Player(socket, name, position) {
   };
 
   // charges another player a set amount
-  this.chargeOther = function (amount, player) {
+  this.chargeOther = function (amount, player, game) {
+    game.gameMessage = game.gameMessage + (" (" + player.name + " owes " + this.name + " " + amount);
     player.giveMoney(amount, game);
   };
 
@@ -378,14 +385,19 @@ function Player(socket, name, position) {
     gameData = {
       playerData: playerData,
       tableData: game.getDeckPublicData(),
+      gameMessage: game.gameMessage,
     };
     // emits game data
     this.socket.emit("gameData", gameData);
+    /*
+    DEBUG OPTION FOR CHECKING GAME DATA:
+
     fs.writeFile(
       "debug/test_game_data" + this.id + ".json",
       JSON.stringify(gameData, null, 2),
       function () {}
     );
+    */
   };
 
   // checks if hand has more cards than allowed
@@ -427,7 +439,7 @@ function Player(socket, name, position) {
       property: property,
       // number of hand cards counted as "money" to make things easier
       money: {
-        moneyTopCard: this.money[0],
+        moneyTopCard: this.money[this.money.length - 1],
         moneyCardCount: this.money.length,
         handCardCount: this.hand.length,
       },

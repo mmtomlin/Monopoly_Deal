@@ -10,7 +10,7 @@ dealBreaker = function (game, player, options) {
 debtCollector = function (game, player, options) {
     const victim = game.getPlayerByRelPos(player, options.victim);
     const charge = 5;
-    player.chargeOther(charge, victim);
+    player.chargeOther(charge, victim, game);
 };
 // options object = {playAsCash: (true/false)}
 doubleTheRent = function (game, player, options) {
@@ -43,7 +43,7 @@ rentAny = function (game, player, options) {
     const victim = game.getPlayerByRelPos(player, options.victim);
     const charge = player.getRentAmountByColour(options.colourPlayed) * player.rentMultiplier;
     player.rentMultiplier = 1;
-    player.chargeOther(charge, victim);
+    player.chargeOther(charge, victim, game);
 }
 
 exports.CARDS = {
@@ -230,9 +230,9 @@ exports.CARDS = {
       name: "rent-brown-lblue",
     },
     {
-      rentColours: ["purple", "orange"],
+      rentColours: ["pink", "orange"],
       numberof: 2,
-      name: "rent-purple-orange",
+      name: "rent-pink-orange",
     },
     {
       rentColours: ["rail", "utility"],

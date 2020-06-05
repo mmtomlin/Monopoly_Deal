@@ -13,6 +13,7 @@ Game = function () {
   this.gameStarted = false;
   this.streetCounter = 0;
   this.currentPlayer = 0;
+  this.gameMessage = "";
 
   this.sendLobbyData = function () {
     for (let p = 0; p < this.players.length; p++) {

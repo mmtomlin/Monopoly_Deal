@@ -122,11 +122,7 @@ io.on("connection", function (socket) {
       player.moneyOwes -= card.card.value;
       owedPlayer.takeCard(card, game);
       player.cleanStreets();
-      if (player.moneyOwes > 0) {
-        player.giveMoney(player.moneyOwes, game);
-      } else {
-        player.moneyOwes = 0;
-      }
+      if (player.moneyOwes < 1) player.moneyOwes = 0;
     }
     if (game.allDebtsPaid()) {
       owedPlayer.finishMove(game);

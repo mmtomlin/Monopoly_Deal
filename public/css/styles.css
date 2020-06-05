@@ -440,13 +440,42 @@ h4 {
   box-shadow: 0px 0px 11px 0px rgba(0, 209, 192, 1);
 }
 
-#move-box {
-  width: 100px;
-  height: 50px;
+#message-box {
+  width: 100px; 
+  min-height: 50px;
+  max-height: 400px;
   position: fixed;
-  bottom: 0px;
-  right: 0px;
+  top: 50px;
+  left: -2px;
+  border: solid black 1px;
+  border-radius: 0px;
+  border-bottom-right-radius: 5px;
+  border-top-right-radius: 5px;
   display: none;
+  flex-direction: column;
+  justify-content: center;
+  background-color: rgb(173, 200, 231);
+  box-shadow: 0px 3px 11px -3px rgba(0, 0, 0, 0.75);
+  padding:8px;
+}
+
+#message-text {
+  font-family: "ITCKabelStd-Demi", "Cabin", sans-serif;
+  font-size: 1.2rem;
+}
+
+#message-button {
+  min-height: 20px;
+  width: 80px;
+  border: solid 1px black;
+  background-color: rgb(223, 223, 223);
+  border-radius: 10px;
+  margin: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: "ITCKabelStd-Demi", "Cabin", sans-serif;
+  font-size: 1.5rem;
 }
 
 .player-details-parent {
@@ -493,4 +522,19 @@ h4 {
 
 .z-index-1 {
   z-index: 1;
+}
+
+.options {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+}
+
+#card-popup {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: -200px;
+  border: solid black 1px;
+  background-color: white;
 }
